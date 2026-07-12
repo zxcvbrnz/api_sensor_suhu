@@ -7,6 +7,7 @@ use App\Models\SensorData;
 Route::post('/sensor-suhu', function (Request $request) {
     // Validasi data yang masuk
     $request->validate([
+        'id_device' => 'required|string',
         'suhu' => 'required|numeric',
         'latitude' => 'required|numeric',
         'longitude' => 'required|numeric',
@@ -14,6 +15,7 @@ Route::post('/sensor-suhu', function (Request $request) {
 
     // Simpan ke database
     $data = SensorData::create([
+        'id_device' => $request->id_device,
         'suhu' => $request->suhu,
         'latitude' => $request->latitude,
         'longitude' => $request->longitude,
