@@ -3,12 +3,15 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use Livewire\WithPagination; // Tambahkan ini untuk pagination async
 use App\Models\SensorData;
 use App\Models\Device;
 use Illuminate\Support\Facades\DB;
 
 class SensorDashboard extends Component
 {
+    use WithPagination; // Gunakan trait pagination
+
     public $selectedDevice = null;
     public $viewingLogs = false;
     public $showMapModal = false;
@@ -20,8 +23,15 @@ class SensorDashboard extends Component
     public $editingDeviceId = null;
     public $inputNamaDevice = '';
 
+    // Reset pagination ketika beralih ke halaman log atau menutupnya
+    public function updatingViewingLogs()
+    {
+        $this->resetPage();
+    }
+
     public function showLogs($idDevice)
     {
+        $this->resetPage(); // Reset page ke 1 saat buka log baru
         $this->selectedDevice = $idDevice;
         $this->viewingLogs = true;
     }
@@ -30,6 +40,7 @@ class SensorDashboard extends Component
     {
         $this->selectedDevice = null;
         $this->viewingLogs = false;
+        $this->resetPage();
     }
 
     public function openMap($latitude, $longitude, $idDevice)
@@ -57,7 +68,6 @@ class SensorDashboard extends Component
 
         $namaBaru = trim($this->inputNamaDevice) === '' ? null : trim($this->inputNamaDevice);
 
-        // UPDATE / CREATE: Mengubah data langsung pada tabel MASTER devices
         Device::updateOrCreate(
             ['id_device' => $this->editingDeviceId],
             ['nama_device' => $namaBaru]
@@ -82,7 +92,7 @@ class SensorDashboard extends Component
             ->groupBy('id_device');
 
         // 2. Join dengan subquery DAN muat relasi master 'device' secara efisien
-        $devices = SensorData::with('device') // Eager load tabel master devices
+        $devices = SensorData::with('device')
             ->joinSub($subQuery, 'latest_records', function ($join) {
                 $join->on('sensor_data.id_device', '=', 'latest_records.id_device')
                     ->on('sensor_data.created_at', '=', 'latest_records.max_created_at');
@@ -90,12 +100,13 @@ class SensorDashboard extends Component
             ->orderBy('sensor_data.id_device', 'asc')
             ->get();
 
-        $deviceLogs = [];
+        $deviceLogs = collect();
         if ($this->viewingLogs && $this->selectedDevice) {
-            $deviceLogs = SensorData::where('id_device', $this->selectedDevice)
+            // Eager load relasi 'device' juga di riwayat log agar bisa memunculkan nama
+            $deviceLogs = SensorData::with('device')
+                ->where('id_device', $this->selectedDevice)
                 ->orderBy('created_at', 'desc')
-                ->take(15)
-                ->get();
+                ->paginate(15); // Menggunakan pagination, isi 15 data per halaman
         }
 
         return view('livewire.sensor-dashboard', [

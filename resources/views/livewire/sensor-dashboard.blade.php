@@ -16,6 +16,7 @@
     </div>
 
     @if (!$viewingLogs)
+        {{-- TABEL UTAMA DAFTAR DEVICE --}}
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
             <div class="p-4 bg-gray-50 border-b border-gray-200">
                 <h3 class="font-semibold text-gray-700">Daftar Status Unit Kulkas Aktif</h3>
@@ -24,7 +25,7 @@
                 <table class="min-w-full divide-y divide-gray-200 text-left">
                     <thead class="bg-gray-100 text-xs text-gray-700 uppercase font-semibold">
                         <tr>
-                            <th class="px-6 py-3">ID Device</th>
+                            <th class="px-6 py-3">ID Device / Nama</th>
                             <th class="px-6 py-3 text-center">Suhu Terakhir</th>
                             <th class="px-6 py-3">Koordinat Lokasi</th>
                             <th class="px-6 py-3">Terakhir Diperbarui</th>
@@ -117,12 +118,20 @@
             </div>
         </div>
     @else
+        {{-- HALAMAN RIWAYAT AKTIVITAS (LOG) --}}
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
             <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
                 <div>
-                    <h3 class="font-semibold text-gray-700">Riwayat Aktivitas: <span
-                            class="font-mono font-bold text-indigo-600">{{ $selectedDevice }}</span></h3>
-                    <p class="text-xs text-gray-400">Menampilkan hingga 15 data pemantauan log terakhir</p>
+                    <h3 class="font-semibold text-gray-700">
+                        Riwayat Aktivitas:
+                        <span class="font-mono font-bold text-indigo-600">{{ $selectedDevice }}</span>
+                        @if ($deviceLogs->count() > 0 && $deviceLogs->first()->device)
+                            <span class="text-gray-500 font-normal text-sm block md:inline md:ml-2">
+                                ({{ $deviceLogs->first()->device->nama_device }})
+                            </span>
+                        @endif
+                    </h3>
+                    <p class="text-xs text-gray-400">Menampilkan data log perekaman sensor ter-paginasi</p>
                 </div>
                 <button wire:click="closeLogs"
                     class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold rounded transition">
@@ -134,6 +143,7 @@
                 <table class="min-w-full divide-y divide-gray-200 text-left">
                     <thead class="bg-gray-100 text-xs text-gray-700 uppercase font-semibold">
                         <tr>
+                            <th class="px-6 py-3">Nama Device</th> {{-- Kolom Nama Tambahan --}}
                             <th class="px-6 py-3">Waktu Data Diterima</th>
                             <th class="px-6 py-3 text-center">Nilai Suhu</th>
                             <th class="px-6 py-3">Koordinat GPS (Lat, Lng)</th>
@@ -143,6 +153,9 @@
                     <tbody class="divide-y divide-gray-200 text-sm text-gray-600">
                         @forelse($deviceLogs as $log)
                             <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-4 font-medium text-gray-900">
+                                    {{ $log->device->nama_device ?? '-' }}
+                                </td>
                                 <td class="px-6 py-4 text-xs font-semibold text-gray-700">
                                     {{ $log->created_at->format('d-m-Y | H:i:s') }}
                                     <span
@@ -167,7 +180,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-8 text-center text-gray-400">
+                                <td colspan="5" class="px-6 py-8 text-center text-gray-400">
                                     Tidak ada data log tersimpan untuk unit ini.
                                 </td>
                             </tr>
@@ -175,9 +188,17 @@
                     </tbody>
                 </table>
             </div>
+
+            {{-- LINK NAVIGASI PAGINATION --}}
+            @if ($deviceLogs->hasPages())
+                <div class="p-4 bg-gray-50 border-t border-gray-200">
+                    {{ $deviceLogs->links() }}
+                </div>
+            @endif
         </div>
     @endif
 
+    {{-- MODAL MAPS --}}
     @if ($showMapModal)
         <div
             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 overflow-y-auto animate-fade-in">
