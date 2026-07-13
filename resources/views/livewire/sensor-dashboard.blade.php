@@ -34,8 +34,44 @@
                     <tbody class="divide-y divide-gray-200 text-sm text-gray-600">
                         @forelse($devices as $device)
                             <tr class="hover:bg-gray-50 transition">
-                                <td class="px-6 py-4 font-mono font-bold text-gray-900">
-                                    {{ $device->id_device }}
+                                <td class="px-6 py-4">
+                                    @if ($editingDeviceId === $device->id_device)
+                                        <div class="flex items-center space-x-1"
+                                            wire:key="edit-{{ $device->id_device }}">
+                                            <input type="text" wire:model="inputNamaDevice"
+                                                class="px-2 py-1 text-xs border border-indigo-400 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 w-40"
+                                                placeholder="Nama Kulkas (cth: Kulkas Sayur)">
+                                            <button wire:click="saveDeviceName"
+                                                class="p-1 px-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-xs font-semibold">
+                                                Simpan
+                                            </button>
+                                            <button wire:click="cancelEdit"
+                                                class="p-1 px-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-xs">
+                                                Batal
+                                            </button>
+                                        </div>
+                                    @else
+                                        <div class="space-y-0.5">
+                                            <span class="block font-mono text-xs font-bold text-gray-400">ID:
+                                                {{ $device->id_device }}</span>
+                                            @if ($device->device && $device->device->nama_device)
+                                                <div class="flex items-center space-x-2">
+                                                    <span
+                                                        class="text-gray-900 font-bold text-sm">{{ $device->device->nama_device }}</span>
+                                                    <button
+                                                        wire:click="startEditName('{{ $device->id_device }}', '{{ $device->device->nama_device }}')"
+                                                        class="text-xs text-gray-400 hover:text-indigo-600 underline">
+                                                        Edit
+                                                    </button>
+                                                </div>
+                                            @else
+                                                <button wire:click="startEditName('{{ $device->id_device }}', '')"
+                                                    class="inline-flex items-center px-2 py-0.5 border border-dashed border-indigo-300 text-indigo-600 hover:bg-indigo-50 text-[11px] font-medium rounded transition">
+                                                    ➕ Beri Nama
+                                                </button>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <span

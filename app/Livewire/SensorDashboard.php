@@ -4,35 +4,34 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\SensorData;
+use App\Models\Device;
 use Illuminate\Support\Facades\DB;
 
 class SensorDashboard extends Component
 {
-    // State Navigasi Riwayat Log
     public $selectedDevice = null;
     public $viewingLogs = false;
-
-    // State Baru: Kontrol Modal Google Maps
     public $showMapModal = false;
     public $mapLatitude = null;
     public $mapLongitude = null;
     public $mapDeviceTarget = null;
 
-    // Aksi ketika tombol "History Log" diklik
+    // State Inline Editing
+    public $editingDeviceId = null;
+    public $inputNamaDevice = '';
+
     public function showLogs($idDevice)
     {
         $this->selectedDevice = $idDevice;
         $this->viewingLogs = true;
     }
 
-    // Aksi kembali ke tabel utama
     public function closeLogs()
     {
         $this->selectedDevice = null;
         $this->viewingLogs = false;
     }
 
-    // Aksi untuk memicu Modal Google Maps keluar (Bisa dipanggil dari mana saja)
     public function openMap($latitude, $longitude, $idDevice)
     {
         $this->mapLatitude = $latitude;
@@ -41,29 +40,56 @@ class SensorDashboard extends Component
         $this->showMapModal = true;
     }
 
-    // Aksi menutup Modal Google Maps
     public function closeMap()
     {
         $this->showMapModal = false;
-        $this->mapLatitude = null;
-        $this->mapLongitude = null;
-        $this->mapDeviceTarget = null;
+    }
+
+    public function startEditName($idDevice, $currentName = '')
+    {
+        $this->editingDeviceId = $idDevice;
+        $this->inputNamaDevice = $currentName ?? '';
+    }
+
+    public function saveDeviceName()
+    {
+        if (empty($this->editingDeviceId)) return;
+
+        $namaBaru = trim($this->inputNamaDevice) === '' ? null : trim($this->inputNamaDevice);
+
+        // UPDATE / CREATE: Mengubah data langsung pada tabel MASTER devices
+        Device::updateOrCreate(
+            ['id_device' => $this->editingDeviceId],
+            ['nama_device' => $namaBaru]
+        );
+
+        $this->editingDeviceId = null;
+        $this->inputNamaDevice = '';
+
+        session()->flash('message', 'Nama perangkat berhasil diperbarui di tabel master!');
+    }
+
+    public function cancelEdit()
+    {
+        $this->editingDeviceId = null;
+        $this->inputNamaDevice = '';
     }
 
     public function render()
     {
-        // 1. QUERY LIST DEVICE (Terbaru per unit)
+        // 1. Ambil data log terakhir per device
         $subQuery = SensorData::select('id_device', DB::raw('MAX(created_at) as max_created_at'))
             ->groupBy('id_device');
 
-        $devices = SensorData::joinSub($subQuery, 'latest_records', function ($join) {
-            $join->on('sensor_data.id_device', '=', 'latest_records.id_device')
-                ->on('sensor_data.created_at', '=', 'latest_records.max_created_at');
-        })
+        // 2. Join dengan subquery DAN muat relasi master 'device' secara efisien
+        $devices = SensorData::with('device') // Eager load tabel master devices
+            ->joinSub($subQuery, 'latest_records', function ($join) {
+                $join->on('sensor_data.id_device', '=', 'latest_records.id_device')
+                    ->on('sensor_data.created_at', '=', 'latest_records.max_created_at');
+            })
             ->orderBy('sensor_data.id_device', 'asc')
             ->get();
 
-        // 2. QUERY HISTORY LOG PER DEVICE
         $deviceLogs = [];
         if ($this->viewingLogs && $this->selectedDevice) {
             $deviceLogs = SensorData::where('id_device', $this->selectedDevice)

@@ -8,4 +8,9 @@ class SensorData extends Model
 {
     protected $table = 'sensor_data';
     protected $fillable = ['id_device', 'suhu', 'latitude', 'longitude'];
+
+    public function device()
+    {
+        return $this->belongsTo(Device::class, 'id_device', 'id_device');
+    }
 }
