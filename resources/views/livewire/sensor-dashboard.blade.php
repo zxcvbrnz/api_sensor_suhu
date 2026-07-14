@@ -2,7 +2,7 @@
 
     <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
         <div>
-            <h1 class="text-2xl font-bold text-gray-800">Dashboard Monitoring Kulkas</h1>
+            <h1 class="text-2xl font-bold text-gray-800">Dashboard Monitoring</h1>
             <p class="text-sm text-gray-500">Pembaruan otomatis data lapangan secara berkala</p>
         </div>
         <div class="flex items-center space-x-2">
@@ -19,7 +19,7 @@
         {{-- TABEL UTAMA DAFTAR DEVICE --}}
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
             <div class="p-4 bg-gray-50 border-b border-gray-200">
-                <h3 class="font-semibold text-gray-700">Daftar Status Unit Kulkas Aktif</h3>
+                <h3 class="font-semibold text-gray-700">Daftar Status Unit Aktif</h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 text-left">
@@ -147,7 +147,7 @@
                             <th class="px-6 py-3">Waktu Data Diterima</th>
                             <th class="px-6 py-3 text-center">Nilai Suhu</th>
                             <th class="px-6 py-3">Koordinat GPS (Lat, Lng)</th>
-                            <th class="px-6 py-3 text-center">Peta</th>
+                            <th class="px-6 py-3 text-center">Maps</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 text-sm text-gray-600">

@@ -10,7 +10,7 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100">
                 <div class="p-6 text-gray-900 text-sm">
-                    {{ __('Selamat Datang! Anda berhasil masuk ke sistem kontrol.') }}
+                    {{ __('Selamat Datang! Anda berhasil masuk ke sistem Monitoring.') }}
                 </div>
             </div>
 
