@@ -14,6 +14,13 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <script>
+        // Menghapus paksa sisa-sisa state dark mode dari browser user
+        localStorage.removeItem('color-theme');
+        localStorage.removeItem('dark-mode');
+        document.documentElement.classList.remove('dark');
+    </script>
 </head>
 
 <body class="font-sans text-gray-900 antialiased">
