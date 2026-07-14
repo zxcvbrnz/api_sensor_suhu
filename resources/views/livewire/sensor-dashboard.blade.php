@@ -1,5 +1,6 @@
 <div wire:poll.5s class="p-6 max-w-6xl mx-auto space-y-6 relative">
 
+    {{-- HEADER DASHBOARD --}}
     <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">Dashboard Monitoring</h1>
@@ -15,8 +16,15 @@
         </div>
     </div>
 
+    {{-- NOTIFIKASI FLASH --}}
+    @if (session()->has('message'))
+        <div class="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm rounded-lg">
+            {{ session('message') }}
+        </div>
+    @endif
+
     @if (!$viewingLogs)
-        {{-- TABEL UTAMA DAFTAR DEVICE --}}
+        {{-- ==================== TABEL UTAMA DAFTAR DEVICE ==================== --}}
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
             <div class="p-4 bg-gray-50 border-b border-gray-200">
                 <h3 class="font-semibold text-gray-700">Daftar Status Unit Aktif</h3>
@@ -118,8 +126,8 @@
             </div>
         </div>
     @else
-        {{-- HALAMAN RIWAYAT AKTIVITAS (LOG) --}}
-        <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+        {{-- ==================== HALAMAN RIWAYAT AKTIVITAS (LOG) ==================== --}}
+        <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 animate-fade-in">
             <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
                 <div>
                     <h3 class="font-semibold text-gray-700">
@@ -131,7 +139,8 @@
                             </span>
                         @endif
                     </h3>
-                    <p class="text-xs text-gray-400">Menampilkan data log perekaman sensor ter-paginasi</p>
+                    <p class="text-xs text-gray-400">Menampilkan data log perekaman sensor ter-paginasi beserta
+                        indikator mutasi posisi geografis</p>
                 </div>
                 <button wire:click="closeLogs"
                     class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold rounded transition">
@@ -143,19 +152,15 @@
                 <table class="min-w-full divide-y divide-gray-200 text-left">
                     <thead class="bg-gray-100 text-xs text-gray-700 uppercase font-semibold">
                         <tr>
-                            {{-- <th class="px-6 py-3">Nama Device</th> Kolom Nama Tambahan --}}
                             <th class="px-6 py-3">Waktu Data Diterima</th>
                             <th class="px-6 py-3 text-center">Nilai Suhu</th>
-                            <th class="px-6 py-3">Koordinat GPS (Lat, Lng)</th>
+                            <th class="px-6 py-3">Koordinat GPS (Lat, Lng) / Status Pergerakan</th>
                             <th class="px-6 py-3 text-center">Maps</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 text-sm text-gray-600">
                         @forelse($deviceLogs as $log)
                             <tr class="hover:bg-gray-50 transition">
-                                {{-- <td class="px-6 py-4 font-medium text-gray-900">
-                                    {{ $log->device->nama_device ?? '-' }}
-                                </td> --}}
                                 <td class="px-6 py-4 text-xs font-semibold text-gray-700">
                                     {{ $log->created_at->format('d-m-Y | H:i:s') }}
                                     <span
@@ -167,8 +172,43 @@
                                         {{ $log->suhu }} °C
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 font-mono text-xs text-gray-500">
-                                    {{ $log->latitude }}, {{ $log->longitude }}
+                                <td class="px-6 py-4">
+                                    <div
+                                        class="flex flex-col sm:flex-row sm:items-center space-y-1.5 sm:space-y-0 sm:space-x-3">
+                                        <span class="font-mono text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                            {{ $log->latitude }}, {{ $log->longitude }}
+                                        </span>
+
+                                        @if (isset($log->distance_moved))
+                                            @if ($log->distance_moved >= 15)
+                                                {{-- MERAH: Perubahan Signifikan (> 15 Meter) --}}
+                                                <span
+                                                    class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200"
+                                                    title="Pergeseran Signifikan">
+                                                    <span class="h-2 w-2 rounded-full bg-rose-500 animate-pulse"></span>
+                                                    <span>Pindah Posisi
+                                                        ({{ $log->distance_moved >= 1000 ? round($log->distance_moved / 1000, 2) . ' km' : round($log->distance_moved) . ' m' }})</span>
+                                                </span>
+                                            @elseif ($log->distance_moved >= 2 && $log->distance_moved < 15)
+                                                {{-- ORANGE/AMBER: Pindah Ruangan / Minor (2 - 15 Meter) --}}
+                                                <span
+                                                    class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200"
+                                                    title="Pindah Ruangan/Bilik">
+                                                    <span
+                                                        class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                                    <span>Ganti Ruangan ({{ round($log->distance_moved, 1) }} m)</span>
+                                                </span>
+                                            @else
+                                                {{-- HIJAU: Posisi Menetap/Sama (< 2 Meter) --}}
+                                                <span
+                                                    class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100"
+                                                    title="Tidak terjadi perpindahan">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                                    <span>Stasioner</span>
+                                                </span>
+                                            @endif
+                                        @endif
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <button
@@ -180,7 +220,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-6 py-8 text-center text-gray-400">
+                                <td colspan="4" class="px-6 py-8 text-center text-gray-400">
                                     Tidak ada data log tersimpan untuk unit ini.
                                 </td>
                             </tr>
@@ -198,10 +238,9 @@
         </div>
     @endif
 
-    {{-- MODAL MAPS --}}
+    {{-- ==================== MODAL MAPS ==================== --}}
     @if ($showMapModal)
-        <div
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 overflow-y-auto animate-fade-in">
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 overflow-y-auto">
             <div
                 class="bg-white rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden border border-gray-100 transform transition-all">
 
@@ -220,7 +259,7 @@
                 <div class="w-full h-96 bg-gray-100">
                     <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0"
                         marginwidth="0"
-                        src="https://maps.google.com/maps?q={{ $mapLatitude }},{{ $mapLongitude }}&hl=id&z=15&output=embed">
+                        src="https://maps.google.com/maps?q={{ $mapLatitude }},{{ $mapLongitude }}&hl=id&z=17&output=embed">
                     </iframe>
                 </div>
 

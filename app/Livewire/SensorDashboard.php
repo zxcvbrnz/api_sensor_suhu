@@ -1,82 +1,79 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Http\Livewire;
 
 use Livewire\Component;
-use Livewire\WithPagination; // Tambahkan ini untuk pagination async
-use App\Models\SensorData;
-use App\Models\Device;
+use Livewire\WithPagination;
+use App\Models\SensorData; // Sesuaikan dengan nama model IoT Anda
 use Illuminate\Support\Facades\DB;
 
 class SensorDashboard extends Component
 {
-    use WithPagination; // Gunakan trait pagination
+    use WithPagination;
 
-    public $selectedDevice = null;
+    // State management
     public $viewingLogs = false;
-    public $showMapModal = false;
-    public $mapLatitude = null;
-    public $mapLongitude = null;
-    public $mapDeviceTarget = null;
+    public $selectedDevice = null;
 
-    // State Inline Editing
+    // Edit nama device
     public $editingDeviceId = null;
     public $inputNamaDevice = '';
 
-    // Reset pagination ketika beralih ke halaman log atau menutupnya
-    public function updatingViewingLogs()
+    // Modal Map
+    public $showMapModal = false;
+    public $mapLatitude = 0;
+    public $mapLongitude = 0;
+    public $mapDeviceTarget = '';
+
+    protected $listeners = ['refreshComponent' => '$refresh'];
+
+    /**
+     * Menghitung jarak antara dua titik koordinat menggunakan Formula Haversine
+     * Menghasilkan jarak dalam satuan Meter
+     */
+    private function calculateHaversineDistance($lat1, $lon1, $lat2, $lon2)
     {
-        $this->resetPage();
+        if (empty($lat1) || empty($lon1) || empty($lat2) || empty($lon2)) {
+            return 0;
+        }
+
+        if (($lat1 == $lat2) && ($lon1 == $lon2)) {
+            return 0;
+        }
+
+        $earthRadius = 6371000; // Radius bumi dalam Meter
+
+        $latFrom = deg2rad($lat1);
+        $lonFrom = deg2rad($lon1);
+        $latTo = deg2rad($lat2);
+        $lonTo = deg2rad($lon2);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
+            cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+
+        return round($angle * $earthRadius, 2);
     }
 
-    public function showLogs($idDevice)
+    public function showLogs($deviceId)
     {
-        $this->resetPage(); // Reset page ke 1 saat buka log baru
-        $this->selectedDevice = $idDevice;
+        $this->selectedDevice = $deviceId;
         $this->viewingLogs = true;
+        $this->resetPage(); // Reset pagination Livewire ke halaman 1
     }
 
     public function closeLogs()
     {
-        $this->selectedDevice = null;
         $this->viewingLogs = false;
-        $this->resetPage();
+        $this->selectedDevice = null;
     }
 
-    public function openMap($latitude, $longitude, $idDevice)
+    public function startEditName($deviceId, $currentName)
     {
-        $this->mapLatitude = $latitude;
-        $this->mapLongitude = $longitude;
-        $this->mapDeviceTarget = $idDevice;
-        $this->showMapModal = true;
-    }
-
-    public function closeMap()
-    {
-        $this->showMapModal = false;
-    }
-
-    public function startEditName($idDevice, $currentName = '')
-    {
-        $this->editingDeviceId = $idDevice;
-        $this->inputNamaDevice = $currentName ?? '';
-    }
-
-    public function saveDeviceName()
-    {
-        if (empty($this->editingDeviceId)) return;
-
-        $namaBaru = trim($this->inputNamaDevice) === '' ? null : trim($this->inputNamaDevice);
-
-        Device::updateOrCreate(
-            ['id_device' => $this->editingDeviceId],
-            ['nama_device' => $namaBaru]
-        );
-
-        $this->editingDeviceId = null;
-        $this->inputNamaDevice = '';
-
-        session()->flash('message', 'Nama perangkat berhasil diperbarui di tabel master!');
+        $this->editingDeviceId = $deviceId;
+        $this->inputNamaDevice = $currentName;
     }
 
     public function cancelEdit()
@@ -85,13 +82,42 @@ class SensorDashboard extends Component
         $this->inputNamaDevice = '';
     }
 
+    public function saveDeviceName()
+    {
+        if ($this->editingDeviceId) {
+            // Asumsi Anda memiliki tabel/relasi Device atau langsung update field di sensor_data
+            // Silakan sesuaikan query update ini dengan arsitektur database Anda
+            DB::table('devices')->updateOrInsert(
+                ['id_device' => $this->editingDeviceId],
+                ['nama_device' => $this->inputNamaDevice, 'updated_at' => now()]
+            );
+
+            $this->editingDeviceId = null;
+            $this->inputNamaDevice = '';
+
+            session()->flash('message', 'Nama perangkat berhasil diperbarui.');
+        }
+    }
+
+    public function openMap($latitude, $longitude, $deviceId)
+    {
+        $this->mapLatitude = $latitude;
+        $this->mapLongitude = $longitude;
+        $this->mapDeviceTarget = $deviceId;
+        $this->showMapModal = true;
+    }
+
+    public function closeMap()
+    {
+        $this->showMapModal = false;
+    }
+
     public function render()
     {
-        // 1. Ambil data log terakhir per device
+        // 1. Ambil data koordinat paling terakhir untuk setiap Device di halaman utama
         $subQuery = SensorData::select('id_device', DB::raw('MAX(created_at) as max_created_at'))
             ->groupBy('id_device');
 
-        // 2. Join dengan subquery DAN muat relasi master 'device' secara efisien
         $devices = SensorData::with('device')
             ->joinSub($subQuery, 'latest_records', function ($join) {
                 $join->on('sensor_data.id_device', '=', 'latest_records.id_device')
@@ -100,13 +126,37 @@ class SensorDashboard extends Component
             ->orderBy('sensor_data.id_device', 'asc')
             ->get();
 
+        // 2. Ambil data log jika user sedang membuka detail riwayat device tertentu
         $deviceLogs = collect();
         if ($this->viewingLogs && $this->selectedDevice) {
-            // Eager load relasi 'device' juga di riwayat log agar bisa memunculkan nama
-            $deviceLogs = SensorData::with('device')
+            $paginatedLogs = SensorData::with('device')
                 ->where('id_device', $this->selectedDevice)
                 ->orderBy('created_at', 'desc')
-                ->paginate(15); // Menggunakan pagination, isi 15 data per halaman
+                ->paginate(15);
+
+            // Sisipkan kalkulasi pergeseran jarak pada tiap baris log dibanding log sebelumnya
+            $paginatedLogs->getCollection()->transform(function ($currentLog) {
+                // Cari log yang masuk persis sebelum log ini (kronologis mundur)
+                $previousLog = SensorData::where('id_device', $currentLog->id_device)
+                    ->where('created_at', '<', $currentLog->created_at)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+
+                if ($previousLog) {
+                    $currentLog->distance_moved = $this->calculateHaversineDistance(
+                        $currentLog->latitude,
+                        $currentLog->longitude,
+                        $previousLog->latitude,
+                        $previousLog->longitude
+                    );
+                } else {
+                    $currentLog->distance_moved = 0; // Data pertama tidak memiliki pembanding
+                }
+
+                return $currentLog;
+            });
+
+            $deviceLogs = $paginatedLogs;
         }
 
         return view('livewire.sensor-dashboard', [
