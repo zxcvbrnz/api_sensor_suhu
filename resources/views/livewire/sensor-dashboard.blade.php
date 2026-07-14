@@ -143,7 +143,7 @@
                 <table class="min-w-full divide-y divide-gray-200 text-left">
                     <thead class="bg-gray-100 text-xs text-gray-700 uppercase font-semibold">
                         <tr>
-                            <th class="px-6 py-3">Nama Device</th> {{-- Kolom Nama Tambahan --}}
+                            {{-- <th class="px-6 py-3">Nama Device</th> Kolom Nama Tambahan --}}
                             <th class="px-6 py-3">Waktu Data Diterima</th>
                             <th class="px-6 py-3 text-center">Nilai Suhu</th>
                             <th class="px-6 py-3">Koordinat GPS (Lat, Lng)</th>
@@ -153,9 +153,9 @@
                     <tbody class="divide-y divide-gray-200 text-sm text-gray-600">
                         @forelse($deviceLogs as $log)
                             <tr class="hover:bg-gray-50 transition">
-                                <td class="px-6 py-4 font-medium text-gray-900">
+                                {{-- <td class="px-6 py-4 font-medium text-gray-900">
                                     {{ $log->device->nama_device ?? '-' }}
-                                </td>
+                                </td> --}}
                                 <td class="px-6 py-4 text-xs font-semibold text-gray-700">
                                     {{ $log->created_at->format('d-m-Y | H:i:s') }}
                                     <span
