@@ -187,7 +187,8 @@
                                                     title="Pergeseran Signifikan">
                                                     <span class="h-2 w-2 rounded-full bg-rose-500 animate-pulse"></span>
                                                     <span>Pindah Posisi
-                                                        ({{ $log->distance_moved >= 1000 ? round($log->distance_moved / 1000, 2) . ' km' : round($log->distance_moved) . ' m' }})</span>
+                                                        ({{ $log->distance_moved >= 1000 ? round($log->distance_moved / 1000, 2) . ' km' : round($log->distance_moved) . ' m' }})
+                                                    </span>
                                                 </span>
                                             @elseif ($log->distance_moved >= 2 && $log->distance_moved < 15)
                                                 {{-- ORANGE/AMBER: Pindah Ruangan / Minor (2 - 15 Meter) --}}
