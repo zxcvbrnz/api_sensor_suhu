@@ -11,8 +11,8 @@ class SensorDashboard extends Component
 {
     use WithPagination;
 
-    // State management
-    public $viewingLogs = false;
+    // === DEKLARASI PROPERTI PUBLIK (Tambahkan/Pastikan baris ini ada) ===
+    public $viewingLogs = false; // Default bernilai false agar tidak langsung membuka halaman log
     public $selectedDevice = null;
 
     // Edit nama device
@@ -24,12 +24,12 @@ class SensorDashboard extends Component
     public $mapLatitude = 0;
     public $mapLongitude = 0;
     public $mapDeviceTarget = '';
+    // ====================================================================
 
     protected $listeners = ['refreshComponent' => '$refresh'];
 
     /**
      * Menghitung jarak antara dua titik koordinat menggunakan Formula Haversine
-     * Menghasilkan jarak dalam satuan Meter
      */
     private function calculateHaversineDistance($lat1, $lon1, $lat2, $lon2)
     {
@@ -61,7 +61,7 @@ class SensorDashboard extends Component
     {
         $this->selectedDevice = $deviceId;
         $this->viewingLogs = true;
-        $this->resetPage(); // Reset pagination Livewire ke halaman 1
+        $this->resetPage();
     }
 
     public function closeLogs()
@@ -85,8 +85,6 @@ class SensorDashboard extends Component
     public function saveDeviceName()
     {
         if ($this->editingDeviceId) {
-            // Asumsi Anda memiliki tabel/relasi Device atau langsung update field di sensor_data
-            // Silakan sesuaikan query update ini dengan arsitektur database Anda
             DB::table('devices')->updateOrInsert(
                 ['id_device' => $this->editingDeviceId],
                 ['nama_device' => $this->inputNamaDevice, 'updated_at' => now()]
@@ -114,7 +112,7 @@ class SensorDashboard extends Component
 
     public function render()
     {
-        // 1. Ambil data koordinat paling terakhir untuk setiap Device di halaman utama
+        // 1. Ambil data koordinat paling terakhir untuk setiap Device
         $subQuery = SensorData::select('id_device', DB::raw('MAX(created_at) as max_created_at'))
             ->groupBy('id_device');
 
@@ -134,9 +132,7 @@ class SensorDashboard extends Component
                 ->orderBy('created_at', 'desc')
                 ->paginate(15);
 
-            // Sisipkan kalkulasi pergeseran jarak pada tiap baris log dibanding log sebelumnya
             $paginatedLogs->getCollection()->transform(function ($currentLog) {
-                // Cari log yang masuk persis sebelum log ini (kronologis mundur)
                 $previousLog = SensorData::where('id_device', $currentLog->id_device)
                     ->where('created_at', '<', $currentLog->created_at)
                     ->orderBy('created_at', 'desc')
@@ -150,7 +146,7 @@ class SensorDashboard extends Component
                         $previousLog->longitude
                     );
                 } else {
-                    $currentLog->distance_moved = 0; // Data pertama tidak memiliki pembanding
+                    $currentLog->distance_moved = 0;
                 }
 
                 return $currentLog;
