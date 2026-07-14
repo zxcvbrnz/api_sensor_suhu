@@ -1,4 +1,4 @@
-<div wire:poll.5s class="p-6 max-w-6xl mx-auto space-y-6 relative">
+<div class="p-6 max-w-6xl mx-auto space-y-6 relative">
 
     {{-- HEADER DASHBOARD --}}
     <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
@@ -24,8 +24,8 @@
     @endif
 
     @if (!$viewingLogs)
-        {{-- ==================== TABEL UTAMA DAFTAR DEVICE ==================== --}}
-        <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+        {{-- ==================== TABEL UTAMA DAFTAR DEVICE (AUTO REFRESH DI SINI) ==================== --}}
+        <div wire:poll.5s class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
             <div class="p-4 bg-gray-50 border-b border-gray-200">
                 <h3 class="font-semibold text-gray-700">Daftar Status Unit Aktif</h3>
             </div>
@@ -42,12 +42,12 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200 text-sm text-gray-600">
                         @forelse($devices as $device)
-                            <tr class="hover:bg-gray-50 transition">
+                            <tr class="hover:bg-gray-50 transition" wire:key="row-device-{{ $device->id_device }}">
                                 <td class="px-6 py-4">
                                     @if ($editingDeviceId === $device->id_device)
                                         <div class="flex items-center space-x-1"
                                             wire:key="edit-{{ $device->id_device }}">
-                                            <input type="text" wire:model="inputNamaDevice"
+                                            <input type="text" wire:model.defer="inputNamaDevice"
                                                 class="px-2 py-1 text-xs border border-indigo-400 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 w-40"
                                                 placeholder="Nama Perangkat">
                                             <button wire:click="saveDeviceName"
@@ -126,7 +126,7 @@
             </div>
         </div>
     @else
-        {{-- ==================== HALAMAN RIWAYAT AKTIVITAS (LOG) ==================== --}}
+        {{-- ==================== HALAMAN RIWAYAT AKTIVITAS (LOG - TANPA POLL AGAR TENANG DI-BACA) ==================== --}}
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 animate-fade-in">
             <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
                 <div>
@@ -160,7 +160,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200 text-sm text-gray-600">
                         @forelse($deviceLogs as $log)
-                            <tr class="hover:bg-gray-50 transition">
+                            <tr class="hover:bg-gray-50 transition" wire:key="row-log-{{ $log->id }}">
                                 <td class="px-6 py-4 text-xs font-semibold text-gray-700">
                                     {{ $log->created_at->format('d-m-Y | H:i:s') }}
                                     <span
@@ -252,6 +252,7 @@
                     </button>
                 </div>
                 <div class="w-full h-96 bg-gray-100">
+                    {{-- Menggunakan URL Google Maps standard yang valid --}}
                     <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0"
                         marginwidth="0"
                         src="https://maps.google.com/maps?q={{ $mapLatitude }},{{ $mapLongitude }}&hl=id&z=17&output=embed">

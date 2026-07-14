@@ -3,14 +3,14 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use Livewire\WithPagination; // Tambahkan ini untuk pagination async
+use Livewire\WithPagination;
 use App\Models\SensorData;
 use App\Models\Device;
 use Illuminate\Support\Facades\DB;
 
 class SensorDashboard extends Component
 {
-    use WithPagination; // Gunakan trait pagination
+    use WithPagination;
 
     public $selectedDevice = null;
     public $viewingLogs = false;
@@ -31,7 +31,7 @@ class SensorDashboard extends Component
 
     public function showLogs($idDevice)
     {
-        $this->resetPage(); // Reset page ke 1 saat buka log baru
+        $this->resetPage();
         $this->selectedDevice = $idDevice;
         $this->viewingLogs = true;
     }
@@ -85,6 +85,31 @@ class SensorDashboard extends Component
         $this->inputNamaDevice = '';
     }
 
+    /**
+     * Hitung Jarak dengan rumus Haversine
+     */
+    private function calculateHaversineDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo)
+    {
+        if (is_null($latitudeFrom) || is_null($longitudeFrom) || is_null($latitudeTo) || is_null($longitudeTo)) {
+            return 0;
+        }
+
+        $earthRadius = 6371000; // Radius bumi dalam Meter
+
+        $latFrom = deg2rad($latitudeFrom);
+        $lonFrom = deg2rad($longitudeFrom);
+        $latTo = deg2rad($latitudeTo);
+        $lonTo = deg2rad($longitudeTo);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
+            cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+
+        return $angle * $earthRadius;
+    }
+
     public function render()
     {
         // 1. Ambil data log terakhir per device
@@ -102,22 +127,26 @@ class SensorDashboard extends Component
 
         $deviceLogs = collect();
         if ($this->viewingLogs && $this->selectedDevice) {
-            // Eager load relasi 'device' juga di riwayat log agar bisa memunculkan nama
             $paginatedLogs = SensorData::with('device')
                 ->where('id_device', $this->selectedDevice)
                 ->orderBy('created_at', 'desc')
-                ->paginate(15); // Menggunakan pagination, isi 15 data per halaman
+                ->paginate(15);
 
-            // === LOGIKA INDIKATOR PERGERAKAN GPS ===
-            $paginatedLogs->getCollection()->transform(function ($currentLog) {
-                // Cari data log tepat satu langkah sebelum log saat ini
-                $previousLog = SensorData::where('id_device', $currentLog->id_device)
-                    ->where('created_at', '<', $currentLog->created_at)
-                    ->orderBy('created_at', 'desc')
-                    ->first();
+            $items = $paginatedLogs->items();
+
+            foreach ($items as $index => $currentLog) {
+                // Optimalisasi N+1: Cek apakah log sebelumnya ada di dalam koleksi halaman saat ini
+                if (isset($items[$index + 1])) {
+                    $previousLog = $items[$index + 1];
+                } else {
+                    // Jika data terakhir di halaman ini, baru kita query ke DB untuk 1 baris sebelum data ini
+                    $previousLog = SensorData::where('id_device', $currentLog->id_device)
+                        ->where('created_at', '<', $currentLog->created_at)
+                        ->orderBy('created_at', 'desc')
+                        ->first();
+                }
 
                 if ($previousLog) {
-                    // Hitung jarak antartitik (dalam meter) via Haversine
                     $currentLog->distance_moved = $this->calculateHaversineDistance(
                         $currentLog->latitude,
                         $currentLog->longitude,
@@ -125,14 +154,11 @@ class SensorDashboard extends Component
                         $previousLog->longitude
                     );
                 } else {
-                    $currentLog->distance_moved = 0; // Log paling pertama (stasioner)
+                    $currentLog->distance_moved = 0;
                 }
-
-                return $currentLog;
-            });
+            }
 
             $deviceLogs = $paginatedLogs;
-            // =======================================
         }
 
         return view('livewire.sensor-dashboard', [
