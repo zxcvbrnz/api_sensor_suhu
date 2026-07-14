@@ -24,7 +24,7 @@
     @endif
 
     @if (!$viewingLogs)
-        {{-- ==================== TABEL UTAMA DAFTAR DEVICE (AUTO REFRESH DI SINI) ==================== --}}
+        {{-- ==================== TABEL UTAMA DAFTAR DEVICE (AUTO REFRESH AKTIF) ==================== --}}
         <div wire:poll.5s class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
             <div class="p-4 bg-gray-50 border-b border-gray-200">
                 <h3 class="font-semibold text-gray-700">Daftar Status Unit Aktif</h3>
@@ -36,6 +36,7 @@
                             <th class="px-6 py-3">ID Device / Nama</th>
                             <th class="px-6 py-3 text-center">Suhu Terakhir</th>
                             <th class="px-6 py-3">Koordinat Lokasi</th>
+                            <th class="px-6 py-3">Status Pergerakan</th>
                             <th class="px-6 py-3">Terakhir Diperbarui</th>
                             <th class="px-6 py-3 text-center">Aksi</th>
                         </tr>
@@ -101,6 +102,38 @@
                                         </button>
                                     </div>
                                 </td>
+
+                                {{-- KOLOM STATUS PERGERAKAN TERBARU --}}
+                                <td class="px-6 py-4">
+                                    @if (isset($device->distance_moved))
+                                        @if ($device->distance_moved >= 15)
+                                            <span
+                                                class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200"
+                                                title="Pergeseran Signifikan">
+                                                <span class="h-2 w-2 rounded-full bg-rose-500 animate-pulse"></span>
+                                                <span>Pindah Posisi
+                                                    ({{ $device->distance_moved >= 1000 ? round($device->distance_moved / 1000, 2) . ' km' : round($device->distance_moved) . ' m' }})</span>
+                                            </span>
+                                        @elseif ($device->distance_moved >= 2 && $device->distance_moved < 15)
+                                            <span
+                                                class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200"
+                                                title="Pindah Ruangan/Bilik">
+                                                <span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                                <span>Ganti Ruangan ({{ round($device->distance_moved, 1) }} m)</span>
+                                            </span>
+                                        @else
+                                            <span
+                                                class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100"
+                                                title="Tidak terjadi perpindahan">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                                <span>Stasioner</span>
+                                            </span>
+                                        @endif
+                                    @else
+                                        <span class="text-xs text-gray-400">-</span>
+                                    @endif
+                                </td>
+
                                 <td class="px-6 py-4 text-xs text-gray-500">
                                     {{ $device->created_at->diffForHumans() }}
                                     <span
@@ -115,7 +148,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5"
+                                <td colspan="6"
                                     class="px-6 py-10 text-center text-gray-400 border border-dashed border-gray-200">
                                     Belum ada data unit IoT yang terdaftar di sistem.
                                 </td>
@@ -126,7 +159,7 @@
             </div>
         </div>
     @else
-        {{-- ==================== HALAMAN RIWAYAT AKTIVITAS (LOG - TANPA POLL AGAR TENANG DI-BACA) ==================== --}}
+        {{-- ==================== HALAMAN RIWAYAT AKTIVITAS (LOGS) ==================== --}}
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 animate-fade-in">
             <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
                 <div>
@@ -252,7 +285,6 @@
                     </button>
                 </div>
                 <div class="w-full h-96 bg-gray-100">
-                    {{-- Menggunakan URL Google Maps standard yang valid --}}
                     <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0"
                         marginwidth="0"
                         src="https://maps.google.com/maps?q={{ $mapLatitude }},{{ $mapLongitude }}&hl=id&z=17&output=embed">

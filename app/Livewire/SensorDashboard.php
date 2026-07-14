@@ -86,7 +86,7 @@ class SensorDashboard extends Component
     }
 
     /**
-     * Hitung Jarak dengan rumus Haversine
+     * Hitung Jarak dengan rumus Haversine (Hasil dalam satuan meter)
      */
     private function calculateHaversineDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo)
     {
@@ -124,6 +124,26 @@ class SensorDashboard extends Component
             })
             ->orderBy('sensor_data.id_device', 'asc')
             ->get();
+
+        // === HITUNG STATUS PERGERAKAN TERBARU UNTUK LIST UTAMA ===
+        foreach ($devices as $deviceLatest) {
+            // Cari data log tepat satu langkah sebelum log terakhir saat ini
+            $previousLog = SensorData::where('id_device', $deviceLatest->id_device)
+                ->where('created_at', '<', $deviceLatest->created_at)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if ($previousLog) {
+                $deviceLatest->distance_moved = $this->calculateHaversineDistance(
+                    $deviceLatest->latitude,
+                    $deviceLatest->longitude,
+                    $previousLog->latitude,
+                    $previousLog->longitude
+                );
+            } else {
+                $deviceLatest->distance_moved = 0; // Log pertama di sistem
+            }
+        }
 
         $deviceLogs = collect();
         if ($this->viewingLogs && $this->selectedDevice) {
