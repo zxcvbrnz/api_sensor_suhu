@@ -49,7 +49,7 @@
                                             wire:key="edit-{{ $device->id_device }}">
                                             <input type="text" wire:model="inputNamaDevice"
                                                 class="px-2 py-1 text-xs border border-indigo-400 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 w-40"
-                                                placeholder="Nama Kulkas (cth: Kulkas Sayur)">
+                                                placeholder="Nama Perangkat">
                                             <button wire:click="saveDeviceName"
                                                 class="p-1 px-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-xs font-semibold">
                                                 Simpan
@@ -181,17 +181,14 @@
 
                                         @if (isset($log->distance_moved))
                                             @if ($log->distance_moved >= 15)
-                                                {{-- MERAH: Perubahan Signifikan (> 15 Meter) --}}
                                                 <span
                                                     class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200"
                                                     title="Pergeseran Signifikan">
                                                     <span class="h-2 w-2 rounded-full bg-rose-500 animate-pulse"></span>
                                                     <span>Pindah Posisi
-                                                        ({{ $log->distance_moved >= 1000 ? round($log->distance_moved / 1000, 2) . ' km' : round($log->distance_moved) . ' m' }})
-                                                    </span>
+                                                        ({{ $log->distance_moved >= 1000 ? round($log->distance_moved / 1000, 2) . ' km' : round($log->distance_moved) . ' m' }})</span>
                                                 </span>
                                             @elseif ($log->distance_moved >= 2 && $log->distance_moved < 15)
-                                                {{-- ORANGE/AMBER: Pindah Ruangan / Minor (2 - 15 Meter) --}}
                                                 <span
                                                     class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200"
                                                     title="Pindah Ruangan/Bilik">
@@ -200,7 +197,6 @@
                                                     <span>Ganti Ruangan ({{ round($log->distance_moved, 1) }} m)</span>
                                                 </span>
                                             @else
-                                                {{-- HIJAU: Posisi Menetap/Sama (< 2 Meter) --}}
                                                 <span
                                                     class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100"
                                                     title="Tidak terjadi perpindahan">
@@ -244,7 +240,6 @@
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 overflow-y-auto">
             <div
                 class="bg-white rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden border border-gray-100 transform transition-all">
-
                 <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
                     <div>
                         <h3 class="font-bold text-gray-800 text-base">Lokasi Geografis Perangkat</h3>
@@ -256,14 +251,12 @@
                         ✕
                     </button>
                 </div>
-
                 <div class="w-full h-96 bg-gray-100">
                     <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0"
                         marginwidth="0"
                         src="https://maps.google.com/maps?q={{ $mapLatitude }},{{ $mapLongitude }}&hl=id&z=17&output=embed">
                     </iframe>
                 </div>
-
                 <div class="p-3 bg-gray-50 border-t border-gray-200 flex justify-end space-x-2">
                     <a href="https://www.google.com/maps/search/?api=1&query={{ $mapLatitude }},{{ $mapLongitude }}"
                         target="_blank"

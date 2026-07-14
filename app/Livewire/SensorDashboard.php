@@ -4,15 +4,15 @@ namespace App\Http\Livewire;
 
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\SensorData; // Sesuaikan dengan nama model IoT Anda
+use App\Models\SensorData;
 use Illuminate\Support\Facades\DB;
 
 class SensorDashboard extends Component
 {
     use WithPagination;
 
-    // === DEKLARASI PROPERTI PUBLIK (Tambahkan/Pastikan baris ini ada) ===
-    public $viewingLogs = false; // Default bernilai false agar tidak langsung membuka halaman log
+    // Deklarasi properti publik secara eksplisit
+    public $viewingLogs = false;
     public $selectedDevice = null;
 
     // Edit nama device
@@ -24,7 +24,6 @@ class SensorDashboard extends Component
     public $mapLatitude = 0;
     public $mapLongitude = 0;
     public $mapDeviceTarget = '';
-    // ====================================================================
 
     protected $listeners = ['refreshComponent' => '$refresh'];
 
@@ -41,7 +40,7 @@ class SensorDashboard extends Component
             return 0;
         }
 
-        $earthRadius = 6371000; // Radius bumi dalam Meter
+        $earthRadius = 6371000; // Satuan Meter
 
         $latFrom = deg2rad($lat1);
         $lonFrom = deg2rad($lon1);
@@ -112,7 +111,7 @@ class SensorDashboard extends Component
 
     public function render()
     {
-        // 1. Ambil data koordinat paling terakhir untuk setiap Device
+        // 1. Ambil koordinat terakhir tiap device
         $subQuery = SensorData::select('id_device', DB::raw('MAX(created_at) as max_created_at'))
             ->groupBy('id_device');
 
@@ -124,7 +123,7 @@ class SensorDashboard extends Component
             ->orderBy('sensor_data.id_device', 'asc')
             ->get();
 
-        // 2. Ambil data log jika user sedang membuka detail riwayat device tertentu
+        // 2. Ambil log riwayat aktivitas
         $deviceLogs = collect();
         if ($this->viewingLogs && $this->selectedDevice) {
             $paginatedLogs = SensorData::with('device')
@@ -155,11 +154,11 @@ class SensorDashboard extends Component
             $deviceLogs = $paginatedLogs;
         }
 
+        // Return view dengan menyertakan variabel secara eksplisit untuk mencegah error undefined
         return view('livewire.sensor-dashboard', [
-            'viewingLogs' => $this->viewingLogs,
-            'selectedDevice' => $this->selectedDevice,
             'devices' => $devices,
-            'deviceLogs' => $deviceLogs
+            'deviceLogs' => $deviceLogs,
+            'viewingLogs' => $this->viewingLogs // Menjamin variabel selalu terdefinisi di blade
         ]);
     }
 }
