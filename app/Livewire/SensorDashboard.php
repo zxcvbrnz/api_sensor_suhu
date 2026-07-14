@@ -156,6 +156,8 @@ class SensorDashboard extends Component
         }
 
         return view('livewire.sensor-dashboard', [
+            'viewingLogs' => $this->viewingLogs,
+            'selectedDevice' => $this->selectedDevice,
             'devices' => $devices,
             'deviceLogs' => $deviceLogs
         ]);
