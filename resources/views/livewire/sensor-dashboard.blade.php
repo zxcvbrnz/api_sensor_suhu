@@ -137,7 +137,7 @@
                                             <span class="h-2 w-2 bg-rose-500 rounded-full animate-pulse"></span>
                                             Pindah Lokasi ({{ round($device->distance_moved) }} m)
                                         </span>
-                                    @elseif($device->distance_moved >= 20)
+                                    @elseif($device->distance_moved >= 30)
                                         <span title="Perubahan cluster posisi terdeteksi"
                                             class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
                                             <span class="h-2 w-2 bg-amber-500 rounded-full animate-pulse"></span>
