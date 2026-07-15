@@ -62,7 +62,7 @@
     @if (!$viewingLogs)
 
         {{-- DEVICE LIST --}}
-        <div wire:poll.5s class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+        <div wire:poll.2s class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
             <div class="p-4 bg-gray-50 border-b">
                 <h3 class="font-semibold text-gray-700">
                     Daftar Status Unit Aktif
