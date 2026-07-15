@@ -155,7 +155,7 @@
                                 <td class="px-6 py-4 text-xs text-gray-500">
                                     {{ $device->created_at->diffForHumans() }}
                                     <span class="block text-[10px] text-gray-400">
-                                        {{ $device->created_at->format('d M Y H:i:s') }}
+                                        {{ $device->created_at->format('d M Y H:i:s') }} WIB
                                     </span>
                                 </td>
 
@@ -214,7 +214,7 @@
                         @forelse($deviceLogs as $log)
                             <tr wire:key="log-{{ $log->id }}" class="hover:bg-gray-50 transition">
                                 <td class="px-6 py-4 text-xs">
-                                    {{ $log->created_at->format('d-m-Y H:i:s') }}
+                                    {{ $log->created_at->format('d-m-Y H:i:s') }} WIB
                                     <br>
                                     <span class="text-gray-400">
                                         {{ $log->created_at->diffForHumans() }}
