@@ -127,65 +127,38 @@ class SensorDashboard extends Component
 
         // === RANGKUMAN STATUS PERGERAKAN DARI 10 DATA TERBARU UNTUK LIST UTAMA ===
         foreach ($devices as $deviceLatest) {
-            // Ambil maksimal 10 data koordinat terbaru untuk device ini (diurutkan dari yang terlama ke terbaru untuk mempermudah tracking)
+
             $recentLogs = SensorData::where('id_device', $deviceLatest->id_device)
-                ->orderBy('created_at', 'desc')
+                ->latest()
                 ->take(10)
-                ->get()
-                ->reverse(); // Balik urutan agar index kecil = data lebih lama, index besar = data terbaru
+                ->get();
 
-            if ($recentLogs->count() > 1) {
-                $totalDistance = 0;
-                $validIntervals = 0;
-                $previousPoint = null;
-
-                foreach ($recentLogs as $log) {
-                    if (is_null($previousPoint)) {
-                        $previousPoint = $log;
-                        continue;
-                    }
-
-                    // Hitung jarak dari titik sebelumnya ke titik saat ini secara berurutan (Rantai)
-                    $distance = $this->calculateHaversineDistance(
-                        $previousPoint->latitude,
-                        $previousPoint->longitude,
-                        $log->latitude,
-                        $log->longitude
-                    );
-
-                    // FILTER DRIFT: Abaikan lompatan micro jika jarak antar log sangat kecil (< 3 meter dianggap noise getaran GPS)
-                    // Namun jika jarak sekali lompat > 25 meter secara instan dalam interval pendek, itu juga indikasi drift.
-                    if ($distance > 3) {
-                        $totalDistance += $distance;
-                        $validIntervals++;
-                    }
-
-                    $previousPoint = $log;
-                }
-
-                // Jika total akumulasi pergerakan rantai dari 10 log terakhir sangat kecil, paksa ke 0 (Posisi Tetap)
-                // Ambang batas akumulasi 10 data diset di angka 20-25 meter untuk menyaring total akumulasi drift saat diam
-                if ($totalDistance < 25) {
-                    $deviceLatest->distance_moved = 0;
-                } else {
-                    // Gunakan nilai jarak akumulatif rata-rata atau total pergeseran ujung ke ujung
-                    // Di sini kita ambil titik paling awal dari 10 log dengan titik paling akhir untuk melihat perpindahan riil sejati
-                    $firstPoint = $recentLogs->first();
-                    $lastPoint = $recentLogs->last();
-
-                    $realDisplacement = $this->calculateHaversineDistance(
-                        $firstPoint->latitude,
-                        $firstPoint->longitude,
-                        $lastPoint->latitude,
-                        $lastPoint->longitude
-                    );
-
-                    // Jika perpindahan bersih dari ujung ke ujung log di atas 20 meter, maka fix bergerak riil
-                    $deviceLatest->distance_moved = $realDisplacement > 20 ? $realDisplacement : 0;
-                }
-            } else {
+            if ($recentLogs->count() < 2) {
                 $deviceLatest->distance_moved = 0;
+                continue;
             }
+
+            // Hitung titik pusat (centroid)
+            $avgLat = $recentLogs->avg('latitude');
+            $avgLng = $recentLogs->avg('longitude');
+
+            $maxDistance = 0;
+
+            foreach ($recentLogs as $log) {
+
+                $distance = $this->calculateHaversineDistance(
+                    $avgLat,
+                    $avgLng,
+                    $log->latitude,
+                    $log->longitude
+                );
+
+                if ($distance > $maxDistance) {
+                    $maxDistance = $distance;
+                }
+            }
+
+            $deviceLatest->distance_moved = $maxDistance;
         }
 
         $deviceLogs = collect();
