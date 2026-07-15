@@ -125,23 +125,39 @@ class SensorDashboard extends Component
             ->orderBy('sensor_data.id_device', 'asc')
             ->get();
 
-        // === HITUNG STATUS PERGERAKAN TERBARU UNTUK LIST UTAMA ===
+        // === RANGKUMAN STATUS PERGERAKAN DARI 10 DATA TERBARU UNTUK LIST UTAMA ===
         foreach ($devices as $deviceLatest) {
-            // Cari data log tepat satu langkah sebelum log terakhir saat ini
-            $previousLog = SensorData::where('id_device', $deviceLatest->id_device)
-                ->where('created_at', '<', $deviceLatest->created_at)
+            // Ambil maksimal 10 data koordinat terbaru untuk device ini
+            $recentLogs = SensorData::where('id_device', $deviceLatest->id_device)
                 ->orderBy('created_at', 'desc')
-                ->first();
+                ->take(10)
+                ->get();
 
-            if ($previousLog) {
-                $deviceLatest->distance_moved = $this->calculateHaversineDistance(
-                    $deviceLatest->latitude,
-                    $deviceLatest->longitude,
-                    $previousLog->latitude,
-                    $previousLog->longitude
-                );
+            if ($recentLogs->count() > 1) {
+                $maxDistance = 0;
+
+                // Bandingkan data terbaru (index 0) dengan 9 data sebelumnya untuk melihat pergeseran maksimum
+                $latestPoint = $recentLogs->first();
+
+                foreach ($recentLogs as $index => $pastLog) {
+                    if ($index === 0) continue; // Skip data terbaru itu sendiri
+
+                    $distance = $this->calculateHaversineDistance(
+                        $latestPoint->latitude,
+                        $latestPoint->longitude,
+                        $pastLog->latitude,
+                        $pastLog->longitude
+                    );
+
+                    if ($distance > $maxDistance) {
+                        $maxDistance = $distance;
+                    }
+                }
+
+                // Simpan nilai pergeseran maksimum yang dirangkum dari 10 data terakhir
+                $deviceLatest->distance_moved = $maxDistance;
             } else {
-                $deviceLatest->distance_moved = 0; // Log pertama di sistem
+                $deviceLatest->distance_moved = 0; // Log pertama/tunggal di sistem
             }
         }
 
@@ -155,11 +171,10 @@ class SensorDashboard extends Component
             $items = $paginatedLogs->items();
 
             foreach ($items as $index => $currentLog) {
-                // Optimalisasi N+1: Cek apakah log sebelumnya ada di dalam koleksi halaman saat ini
+                // Sesuai permintaan: History log TETAP berdasarkan 1 data sebelumnya saja
                 if (isset($items[$index + 1])) {
                     $previousLog = $items[$index + 1];
                 } else {
-                    // Jika data terakhir di halaman ini, baru kita query ke DB untuk 1 baris sebelum data ini
                     $previousLog = SensorData::where('id_device', $currentLog->id_device)
                         ->where('created_at', '<', $currentLog->created_at)
                         ->orderBy('created_at', 'desc')
