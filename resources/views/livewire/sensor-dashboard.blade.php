@@ -1,331 +1,961 @@
 <div class="p-6 max-w-6xl mx-auto space-y-6 relative">
 
-    {{-- HEADER DASHBOARD --}}
+
+    {{-- HEADER --}}
     <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+
         <div>
-            <h1 class="text-2xl font-bold text-gray-800">Dashboard Monitoring</h1>
-            <p class="text-sm text-gray-500">Pembaruan otomatis data lapangan secara berkala</p>
+            <h1 class="text-2xl font-bold text-gray-800">
+                Dashboard Monitoring
+            </h1>
+
+            <p class="text-sm text-gray-500">
+                Analisis posisi berdasarkan 10 titik GPS terakhir
+            </p>
         </div>
+
+
         <div class="flex items-center space-x-2">
+
             <span class="relative flex h-3 w-3">
-                <span
-                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75">
+                </span>
+
+
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500">
+                </span>
+
             </span>
-            <span class="text-xs text-gray-600 font-medium">Live Connected</span>
+
+
+            <span class="text-xs text-gray-600 font-medium">
+                Live Connected
+            </span>
+
         </div>
+
     </div>
 
-    {{-- NOTIFIKASI FLASH --}}
+
+
+
+    {{-- FLASH MESSAGE --}}
+
     @if (session()->has('message'))
         <div class="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm rounded-lg">
+
             {{ session('message') }}
+
         </div>
     @endif
 
-    {{-- LEGENDA STATUS PERGERAKAN (MUNCUL DI KEDUA HALAMAN) --}}
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-wrap items-center gap-4 text-xs">
-        <span class="font-semibold text-gray-700 block w-full sm:w-auto mb-1 sm:mb-0">Keterangan Status
-            Pergerakan:</span>
+
+
+
+
+
+
+    {{-- LEGEND STATUS --}}
+
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-wrap gap-4 text-xs">
+
+
+        <span class="font-semibold text-gray-700 w-full sm:w-auto">
+
+            Status Pergerakan
+            <br>
+
+            <span class="text-[10px] text-gray-400">
+                (Berdasarkan sebaran 10 titik GPS terakhir)
+            </span>
+
+        </span>
+
+
+
+
         <div
-            class="flex items-center space-x-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-100 font-medium">
+            class="flex items-center space-x-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-100">
+
             <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-            <span>Posisi Tetap (0 - 19m)</span>
+
+            <span>
+                Posisi Stabil (0 - 19m)
+            </span>
+
         </div>
+
+
+
+
+
         <div
-            class="flex items-center space-x-2 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full border border-amber-200 font-medium">
+            class="flex items-center space-x-2 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full border border-amber-200">
+
             <span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
-            <span>Pindah Posisi (20 - 99m)</span>
+
+            <span>
+                Kemungkinan Berpindah (20 - 99m)
+            </span>
+
         </div>
+
+
+
+
+
         <div
-            class="flex items-center space-x-2 bg-rose-50 text-rose-700 px-3 py-1.5 rounded-full border border-rose-200 font-bold">
+            class="flex items-center space-x-2 bg-rose-50 text-rose-700 px-3 py-1.5 rounded-full border border-rose-200">
+
             <span class="h-2 w-2 rounded-full bg-rose-500 animate-pulse"></span>
-            <span>Pindah Lokasi (≥ 100m)</span>
+
+            <span>
+                Pindah Lokasi (≥100m)
+            </span>
+
         </div>
+
+
+
     </div>
 
+
+
+
+
+
+
+
     @if (!$viewingLogs)
-        {{-- ==================== TABEL UTAMA DAFTAR DEVICE (AUTO REFRESH AKTIF) ==================== --}}
+
+
+
+        {{-- DEVICE LIST --}}
+
+
         <div wire:poll.5s class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
-            <div class="p-4 bg-gray-50 border-b border-gray-200">
-                <h3 class="font-semibold text-gray-700">Daftar Status Unit Aktif</h3>
+
+
+
+            <div class="p-4 bg-gray-50 border-b">
+
+                <h3 class="font-semibold text-gray-700">
+
+                    Daftar Status Unit Aktif
+
+                </h3>
+
             </div>
+
+
+
+
+
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 text-left">
-                    <thead class="bg-gray-100 text-xs text-gray-700 uppercase font-semibold">
+
+
+                <table class="min-w-full divide-y divide-gray-200">
+
+
+                    <thead class="bg-gray-100 text-xs uppercase text-gray-700">
+
+
                         <tr>
-                            <th class="px-6 py-3">ID Device / Nama</th>
-                            <th class="px-6 py-3 text-center">Suhu Terakhir</th>
-                            <th class="px-6 py-3">Koordinat Lokasi</th>
-                            <th class="px-6 py-3">Status Pergerakan</th>
-                            <th class="px-6 py-3">Terakhir Diperbarui</th>
-                            <th class="px-6 py-3 text-center">Aksi</th>
+
+
+                            <th class="px-6 py-3">
+                                ID Device / Nama
+                            </th>
+
+
+                            <th class="px-6 py-3 text-center">
+                                Suhu
+                            </th>
+
+
+                            <th class="px-6 py-3">
+                                Lokasi
+                            </th>
+
+
+                            <th class="px-6 py-3">
+                                Status Pergerakan
+                            </th>
+
+
+                            <th class="px-6 py-3">
+                                Update
+                            </th>
+
+
+                            <th class="px-6 py-3 text-center">
+                                Aksi
+                            </th>
+
+
                         </tr>
+
+
                     </thead>
-                    <tbody class="divide-y divide-gray-200 text-sm text-gray-600">
+
+
+
+
+
+
+
+                    <tbody class="divide-y divide-gray-200 text-sm">
+
+
+
                         @forelse($devices as $device)
-                            <tr class="hover:bg-gray-50 transition" wire:key="row-device-{{ $device->id_device }}">
-                                <td class="px-6 py-4">
-                                    @if ($editingDeviceId === $device->id_device)
-                                        <div class="flex items-center space-x-1"
-                                            wire:key="edit-{{ $device->id_device }}">
-                                            <input type="text" wire:model.defer="inputNamaDevice"
-                                                class="px-2 py-1 text-xs border border-indigo-400 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 w-40"
-                                                placeholder="Nama Perangkat">
-                                            <button wire:click="saveDeviceName"
-                                                class="p-1 px-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-xs font-semibold">
-                                                Simpan
-                                            </button>
-                                            <button wire:click="cancelEdit"
-                                                class="p-1 px-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-xs">
-                                                Batal
-                                            </button>
-                                        </div>
-                                    @else
-                                        <div class="space-y-0.5">
-                                            <span class="block font-mono text-xs font-bold text-gray-400">ID:
-                                                {{ $device->id_device }}</span>
-                                            @if ($device->device && $device->device->nama_device)
-                                                <div class="flex items-center space-x-2">
-                                                    <span
-                                                        class="text-gray-900 font-bold text-sm">{{ $device->device->nama_device }}</span>
-                                                    <button
-                                                        wire:click="startEditName('{{ $device->id_device }}', '{{ $device->device->nama_device }}')"
-                                                        class="text-xs text-gray-400 hover:text-indigo-600 underline">
-                                                        Edit
-                                                    </button>
-                                                </div>
-                                            @else
-                                                <button wire:click="startEditName('{{ $device->id_device }}', '')"
-                                                    class="inline-flex items-center px-2 py-0.5 border border-dashed border-indigo-300 text-indigo-600 hover:bg-indigo-50 text-[11px] font-medium rounded transition">
-                                                    ➕ Beri Nama
-                                                </button>
-                                            @endif
-                                        </div>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span
-                                        class="inline-block px-3 py-1 rounded-full font-black text-sm {{ $device->suhu > 0 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700' }}">
-                                        {{ $device->suhu }} °C
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center space-x-2">
-                                        <div class="font-mono text-xs">
-                                            <span class="block text-gray-400">Lat: {{ $device->latitude }}</span>
-                                            <span class="block text-gray-400">Lng: {{ $device->longitude }}</span>
-                                        </div>
-                                        <button
-                                            wire:click="openMap({{ $device->latitude }}, {{ $device->longitude }}, '{{ $device->id_device }}')"
-                                            class="p-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded border border-emerald-200 transition text-xs font-semibold px-2">
-                                            🗺️ Map
-                                        </button>
-                                    </div>
-                                </td>
+                            <tr wire:key="device-{{ $device->id_device }}" class="hover:bg-gray-50 transition">
+
+
+
+
 
                                 <td class="px-6 py-4">
-                                    @if (isset($device->distance_moved))
-                                        @if ($device->distance_moved >= 100)
-                                            <span
-                                                class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200"
-                                                title="Pergeseran Signifikan">
-                                                <span class="h-2 w-2 rounded-full bg-rose-500 animate-pulse"></span>
-                                                <span>Pindah Lokasi
-                                                    ({{ $device->distance_moved >= 1000 ? round($device->distance_moved / 1000, 2) . ' km' : round($device->distance_moved) . ' m' }})
+
+
+                                    <div>
+
+                                        <span class="block text-xs text-gray-400 font-mono">
+
+                                            ID:
+                                            {{ $device->id_device }}
+
+                                        </span>
+
+
+
+                                        @if ($device->device && $device->device->nama_device)
+                                            <div class="flex items-center gap-2">
+
+
+                                                <span class="font-bold text-gray-800">
+
+                                                    {{ $device->device->nama_device }}
+
                                                 </span>
-                                            </span>
-                                        @elseif ($device->distance_moved >= 20 && $device->distance_moved < 100)
-                                            <span
-                                                class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200"
-                                                title="Pindah Ruangan/Bilik">
-                                                <span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
-                                                <span>Pindah posisi ({{ round($device->distance_moved, 1) }} m)</span>
-                                            </span>
+
+
+
+                                                <button
+                                                    wire:click="startEditName(
+'{{ $device->id_device }}',
+'{{ $device->device->nama_device }}'
+)"
+                                                    class="text-xs text-indigo-500 underline">
+
+                                                    Edit
+
+                                                </button>
+
+
+                                            </div>
                                         @else
-                                            <span
-                                                class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100"
-                                                title="Tidak terjadi perpindahan">
-                                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                                                <span>Posisi Tetap</span>
-                                            </span>
+                                            <button wire:click="startEditName(
+'{{ $device->id_device }}',
+''
+)"
+                                                class="text-xs px-2 py-1 border border-dashed border-indigo-300 text-indigo-600 rounded">
+
+
+                                                + Beri Nama
+
+
+                                            </button>
                                         @endif
+
+
+
+                                    </div>
+
+
+                                </td>
+
+
+
+
+
+
+
+
+
+                                <td class="px-6 py-4 text-center">
+
+
+                                    <span
+                                        class="px-3 py-1 rounded-full font-bold text-sm
+{{ $device->suhu > 0 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700' }}">
+
+
+                                        {{ $device->suhu }} °C
+
+
+                                    </span>
+
+
+                                </td>
+
+
+
+
+
+
+
+
+
+                                <td class="px-6 py-4">
+
+
+                                    <div class="font-mono text-xs text-gray-500">
+
+
+                                        Lat:
+                                        {{ $device->latitude }}
+
+                                        <br>
+
+
+                                        Lng:
+                                        {{ $device->longitude }}
+
+
+
+                                    </div>
+
+
+
+
+                                    <button
+                                        wire:click="openMap(
+{{ $device->latitude }},
+{{ $device->longitude }},
+'{{ $device->id_device }}'
+)"
+                                        class="mt-2 px-2 py-1 bg-emerald-50 text-emerald-600 border rounded text-xs">
+
+
+                                        🗺 Map
+
+
+                                    </button>
+
+
+                                </td>
+
+
+
+
+
+
+
+
+                                <td class="px-6 py-4">
+
+
+                                    @if ($device->distance_moved >= 100)
+                                        <span title="Pergeseran pusat 10 titik GPS terakhir"
+                                            class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border">
+
+
+                                            <span class="h-2 w-2 bg-rose-500 rounded-full animate-pulse"></span>
+
+
+                                            Pindah Lokasi
+
+                                            ({{ round($device->distance_moved) }} m)
+                                        </span>
+                                    @elseif($device->distance_moved >= 20)
+                                        <span title="Perubahan cluster posisi terdeteksi"
+                                            class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border">
+
+
+                                            <span class="h-2 w-2 bg-amber-500 rounded-full animate-pulse"></span>
+
+
+                                            Kemungkinan Pindah
+
+                                            ({{ round($device->distance_moved) }} m)
+
+
+                                        </span>
                                     @else
-                                        <span class="text-xs text-gray-400">-</span>
+                                        <span title="10 titik terakhir masih berada pada area yang sama"
+                                            class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border">
+
+
+                                            <span class="h-2 w-2 bg-emerald-500 rounded-full"></span>
+
+
+                                            Posisi Stabil
+
+
+                                        </span>
                                     @endif
+
+
                                 </td>
 
                                 <td class="px-6 py-4 text-xs text-gray-500">
+
+
                                     {{ $device->created_at->diffForHumans() }}
-                                    <span
-                                        class="block text-[10px] text-gray-400">({{ $device->created_at->format('d M Y H:i:s') }})</span>
+
+
+                                    <span class="block text-[10px] text-gray-400">
+
+                                        {{ $device->created_at->format('d M Y H:i:s') }}
+
+                                    </span>
+
+
                                 </td>
+
+
+
+
+
+
+
                                 <td class="px-6 py-4 text-center">
+
+
                                     <button wire:click="showLogs('{{ $device->id_device }}')"
-                                        class="inline-flex items-center px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded shadow-sm transition">
+                                        class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-xs font-semibold">
+
+
                                         History Log
+
+
                                     </button>
+
+
                                 </td>
+
+
+
                             </tr>
+
+
+
+
+
                         @empty
+
+
                             <tr>
-                                <td colspan="6"
-                                    class="px-6 py-10 text-center text-gray-400 border border-dashed border-gray-200">
-                                    Belum ada data unit IoT yang terdaftar di sistem.
+
+                                <td colspan="6" class="text-center py-10 text-gray-400">
+
+
+                                    Belum ada data perangkat.
+
+
                                 </td>
+
+
                             </tr>
                         @endforelse
+
+
+
                     </tbody>
+
+
                 </table>
-            </div>
-        </div>
-    @else
-        {{-- ==================== HALAMAN RIWAYAT AKTIVITAS (LOGS) ==================== --}}
-        <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 animate-fade-in">
-            <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
-                <div>
-                    <h3 class="font-semibold text-gray-700">
-                        Riwayat Aktivitas:
-                        <span class="font-mono font-bold text-indigo-600">{{ $selectedDevice }}</span>
-                        @if ($deviceLogs->count() > 0 && $deviceLogs->first()->device)
-                            <span class="text-gray-500 font-normal text-sm block md:inline md:ml-2">
-                                ({{ $deviceLogs->first()->device->nama_device }})
-                            </span>
-                        @endif
-                    </h3>
-                    <p class="text-xs text-gray-400">Menampilkan data log perekaman sensor ter-paginasi beserta
-                        indikator mutasi posisi geografis</p>
-                </div>
-                <button wire:click="closeLogs"
-                    class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold rounded transition">
-                    ← Kembali ke Daftar
-                </button>
+
+
             </div>
 
+
+        </div>
+    @else
+        {{-- =========================
+HISTORY LOG
+========================= --}}
+
+
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden border">
+
+
+
+            <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+
+
+                <div>
+
+
+                    <h3 class="font-semibold text-gray-700">
+
+
+                        Riwayat Device:
+
+                        <span class="font-mono text-indigo-600">
+
+                            {{ $selectedDevice }}
+
+                        </span>
+
+
+                    </h3>
+
+
+
+                    <p class="text-xs text-gray-400">
+
+                        Perhitungan jarak antar rekaman GPS
+
+                    </p>
+
+
+                </div>
+
+
+
+
+
+
+                <button wire:click="closeLogs" class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 rounded text-xs">
+
+
+                    ← Kembali
+
+
+                </button>
+
+
+
+            </div>
+
+
+
+
+
+
+
+
+
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 text-left">
-                    <thead class="bg-gray-100 text-xs text-gray-700 uppercase font-semibold">
+
+
+                <table class="min-w-full divide-y divide-gray-200">
+
+
+                    <thead class="bg-gray-100 text-xs uppercase">
+
+
                         <tr>
-                            <th class="px-6 py-3">Waktu Data Diterima</th>
-                            <th class="px-6 py-3 text-center">Nilai Suhu</th>
-                            <th class="px-6 py-3">Koordinat GPS (Lat, Lng) / Status Pergerakan</th>
-                            <th class="px-6 py-3 text-center">Maps</th>
+
+
+                            <th class="px-6 py-3">
+
+                                Waktu
+
+                            </th>
+
+
+
+                            <th class="px-6 py-3 text-center">
+
+                                Suhu
+
+                            </th>
+
+
+
+                            <th class="px-6 py-3">
+
+                                Koordinat / Pergerakan
+
+                            </th>
+
+
+
+                            <th class="px-6 py-3 text-center">
+
+                                Maps
+
+                            </th>
+
+
+
                         </tr>
+
+
                     </thead>
-                    <tbody class="divide-y divide-gray-200 text-sm text-gray-600">
+
+
+
+
+
+
+
+
+                    <tbody>
+
+
+
                         @forelse($deviceLogs as $log)
-                            <tr class="hover:bg-gray-50 transition" wire:key="row-log-{{ $log->id }}">
-                                <td class="px-6 py-4 text-xs font-semibold text-gray-700">
-                                    {{ $log->created_at->format('d-m-Y | H:i:s') }}
-                                    <span
-                                        class="text-gray-400 font-normal ml-2">({{ $log->created_at->diffForHumans() }})</span>
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span
-                                        class="inline-block px-2 py-0.5 rounded font-bold text-xs {{ $log->suhu > 0 ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600' }}">
-                                        {{ $log->suhu }} °C
+                            <tr wire:key="log-{{ $log->id }}" class="hover:bg-gray-50">
+
+
+
+
+
+
+
+                                <td class="px-6 py-4 text-xs">
+
+
+                                    {{ $log->created_at->format('d-m-Y H:i:s') }}
+
+
+                                    <br>
+
+
+                                    <span class="text-gray-400">
+
+                                        {{ $log->created_at->diffForHumans() }}
+
                                     </span>
+
+
                                 </td>
+
+
+
+
+
+
+
+
+                                <td class="px-6 py-4 text-center">
+
+
+                                    <span
+                                        class="px-2 py-1 rounded text-xs font-bold
+{{ $log->suhu > 0 ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600' }}">
+
+
+                                        {{ $log->suhu }} °C
+
+
+                                    </span>
+
+
+
+                                </td>
+
+
+
+
+
+
+
+
                                 <td class="px-6 py-4">
-                                    <div
-                                        class="flex flex-col sm:flex-row sm:items-center space-y-1.5 sm:space-y-0 sm:space-x-3">
-                                        <span class="font-mono text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                            {{ $log->latitude }}, {{ $log->longitude }}
-                                        </span>
+
+
+                                    <div class="space-y-2">
+
+
+                                        <div class="font-mono text-xs bg-gray-100 rounded px-2 py-1">
+
+
+                                            {{ $log->latitude }},
+
+                                            {{ $log->longitude }}
+
+
+                                        </div>
+
+
+
+
+
 
                                         @if (isset($log->distance_moved))
                                             @if ($log->distance_moved >= 100)
                                                 <span
-                                                    class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200"
-                                                    title="Pergeseran Signifikan">
-                                                    <span
-                                                        class="h-2 w-2 rounded-full bg-rose-500 animate-pulse"></span>
-                                                    <span>Pindah Lokasi
-                                                        ({{ $log->distance_moved >= 1000 ? round($log->distance_moved / 1000, 2) . ' km' : round($log->distance_moved) . ' m' }})
-                                                    </span>
+                                                    class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700">
+
+
+                                                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+
+
+                                                    Pindah Lokasi
+
+                                                    ({{ round($log->distance_moved) }}m)
                                                 </span>
-                                            @elseif ($log->distance_moved >= 20 && $log->distance_moved < 100)
+                                            @elseif($log->distance_moved >= 20)
                                                 <span
-                                                    class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200"
-                                                    title="Pindah Ruangan/Bilik">
-                                                    <span
-                                                        class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
-                                                    <span>Pindah posisi ({{ round($log->distance_moved, 1) }} m)</span>
+                                                    class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700">
+
+
+                                                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+
+
+                                                    Pindah Posisi
+
+                                                    ({{ round($log->distance_moved) }}m)
+
+
                                                 </span>
                                             @else
                                                 <span
-                                                    class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100"
-                                                    title="Tidak terjadi perpindahan">
-                                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                                                    <span>Posisi Tetap</span>
+                                                    class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs bg-emerald-50 text-emerald-700">
+
+
+                                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+
+
+                                                    Tetap
+
+
                                                 </span>
                                             @endif
                                         @endif
+
+
+
                                     </div>
+
+
                                 </td>
+
+
+
+
+
+
+
+
+
                                 <td class="px-6 py-4 text-center">
+
+
                                     <button
-                                        wire:click="openMap({{ $log->latitude }}, {{ $log->longitude }}, '{{ $log->id_device }}')"
-                                        class="inline-flex items-center px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded transition">
+                                        wire:click="openMap(
+{{ $log->latitude }},
+{{ $log->longitude }},
+'{{ $log->id_device }}'
+)"
+                                        class="px-3 py-1 bg-emerald-600 text-white rounded text-xs">
+
+
                                         Lihat Titik
+
+
                                     </button>
+
+
                                 </td>
+
+
+
+
+
                             </tr>
+
+
+
+
+
+
                         @empty
+
+
                             <tr>
-                                <td colspan="4" class="px-6 py-8 text-center text-gray-400">
-                                    Tidak ada data log tersimpan untuk unit ini.
+
+
+                                <td colspan="4" class="text-center py-10 text-gray-400">
+
+
+                                    Tidak ada history.
+
+
                                 </td>
+
+
                             </tr>
                         @endforelse
+
+
+
+
                     </tbody>
+
+
                 </table>
+
+
+
             </div>
 
-            {{-- LINK NAVIGASI PAGINATION --}}
+
+
+
+
+
+
+
             @if ($deviceLogs->hasPages())
-                <div class="p-4 bg-gray-50 border-t border-gray-200">
+                <div class="p-4 bg-gray-50 border-t">
+
+
                     {{ $deviceLogs->links() }}
+
+
                 </div>
             @endif
+
+
+
+
+
+        </div>
+
+
+
+    @endif
+
+
+
+
+
+
+
+    {{-- =========================
+MODAL MAP
+========================= --}}
+
+
+
+    @if ($showMapModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+
+
+
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-3xl overflow-hidden">
+
+
+
+
+
+                <div class="p-4 bg-gray-50 border-b flex justify-between">
+
+
+                    <div>
+
+
+                        <h3 class="font-bold">
+
+                            Lokasi Perangkat
+
+
+                        </h3>
+
+
+                        <p class="text-xs text-gray-400 font-mono">
+
+
+                            {{ $mapLatitude }},
+
+                            {{ $mapLongitude }}
+
+
+                        </p>
+
+
+                    </div>
+
+
+
+
+
+
+                    <button wire:click="closeMap" class="text-gray-500 font-bold">
+
+
+                        ✕
+
+
+                    </button>
+
+
+
+                </div>
+
+
+
+
+
+
+
+                <div class="h-96">
+
+
+                    <iframe width="100%" height="100%" frameborder="0"
+                        src="https://maps.google.com/maps?q={{ $mapLatitude }},{{ $mapLongitude }}&hl=id&z=17&output=embed">
+
+
+                    </iframe>
+
+
+
+                </div>
+
+
+
+
+
+
+
+
+                <div class="p-3 bg-gray-50 flex justify-end gap-2">
+
+
+                    <a target="_blank"
+                        href="https://www.google.com/maps/search/?api=1&query={{ $mapLatitude }},{{ $mapLongitude }}"
+                        class="px-4 py-2 bg-blue-600 text-white rounded text-xs">
+
+
+                        Buka Google Maps
+
+
+                    </a>
+
+
+
+
+
+                    <button wire:click="closeMap" class="px-4 py-2 bg-gray-300 rounded text-xs">
+
+
+                        Tutup
+
+
+                    </button>
+
+
+                </div>
+
+
+
+
+
+
+            </div>
+
+
         </div>
     @endif
 
-    {{-- ==================== MODAL MAPS ==================== --}}
-    @if ($showMapModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 overflow-y-auto">
-            <div
-                class="bg-white rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden border border-gray-100 transform transition-all">
-                <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
-                    <div>
-                        <h3 class="font-bold text-gray-800 text-base">Lokasi Geografis Perangkat</h3>
-                        <p class="text-xs text-gray-400 font-mono">Device Target: {{ $mapDeviceTarget }}
-                            ({{ $mapLatitude }}, {{ $mapLongitude }})</p>
-                    </div>
-                    <button wire:click="closeMap"
-                        class="text-gray-400 hover:text-gray-600 font-bold text-lg p-1 px-2 rounded hover:bg-gray-200 transition">
-                        ✕
-                    </button>
-                </div>
-                <div class="w-full h-96 bg-gray-100">
-                    <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0"
-                        marginwidth="0"
-                        src="https://maps.google.com/maps?q={{ $mapLatitude }},{{ $mapLongitude }}&hl=id&z=17&output=embed">
-                    </iframe>
-                </div>
-                <div class="p-3 bg-gray-50 border-t border-gray-200 flex justify-end space-x-2">
-                    <a href="https://www.google.com/maps/search/?api=1&query={{ $mapLatitude }},{{ $mapLongitude }}"
-                        target="_blank"
-                        class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded shadow transition">
-                        Buka di Google Maps Apps ↗
-                    </a>
-                    <button wire:click="closeMap"
-                        class="px-4 py-1.5 bg-gray-300 hover:bg-gray-400 text-gray-700 text-xs font-semibold rounded transition">
-                        Tutup
-                    </button>
-                </div>
-            </div>
-        </div>
-    @endif
+
 
 </div>
