@@ -63,10 +63,17 @@
 
         {{-- DEVICE LIST --}}
         <div wire:poll.5s class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
-            <div class="p-4 bg-gray-50 border-b">
+            <div
+                class="p-4 bg-gray-50 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <h3 class="font-semibold text-gray-700">
                     Daftar Status Unit Aktif
                 </h3>
+                {{-- INPUT SEARCH BAR --}}
+                <div class="w-full sm:w-64">
+                    <input type="text" wire:model.live.debounce.300ms="search"
+                        placeholder="Cari ID atau Nama Device..."
+                        class="w-full px-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -169,7 +176,7 @@
                         @empty
                             <tr>
                                 <td colspan="6" class="text-center py-10 text-gray-400">
-                                    Belum ada data perangkat.
+                                    Belum ada data perangkat atau tidak ditemukan hasil yang cocok.
                                 </td>
                             </tr>
                         @endforelse

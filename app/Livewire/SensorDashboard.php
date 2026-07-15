@@ -24,7 +24,16 @@ class SensorDashboard extends Component
     public $showEditNameModal = false;
     public $inputNamaDevice = '';
 
+    // Fitur Search
+    public $search = '';
+
     public function updatingViewingLogs()
+    {
+        $this->resetPage();
+    }
+
+    // Reset pagination ketika query pencarian berubah
+    public function updatingSearch()
     {
         $this->resetPage();
     }
@@ -231,10 +240,10 @@ class SensorDashboard extends Component
 
 
         /*
-    |--------------------------------------------------------------------------
-    | Analisa Status
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Analisa Status
+        |--------------------------------------------------------------------------
+        */
 
 
         // Kemungkinan GPS drift:
@@ -271,13 +280,24 @@ class SensorDashboard extends Component
         $subQuery = SensorData::select('id_device', DB::raw('MAX(created_at) as max_created_at'))
             ->groupBy('id_device');
 
-        $devices = SensorData::with('device')
+        $devicesQuery = SensorData::with('device')
             ->joinSub($subQuery, 'latest_records', function ($join) {
                 $join->on('sensor_data.id_device', '=', 'latest_records.id_device')
                     ->on('sensor_data.created_at', '=', 'latest_records.max_created_at');
-            })
-            ->orderBy('sensor_data.id_device', 'asc')
-            ->get();
+            });
+
+        // Filter pencarian berdasarkan ID Device atau Nama Device jika query diisi
+        if (!empty(trim($this->search))) {
+            $searchTerm = '%' . trim($this->search) . '%';
+            $devicesQuery->where(function ($q) use ($searchTerm) {
+                $q->where('sensor_data.id_device', 'like', $searchTerm)
+                    ->orWhereHas('device', function ($subQ) use ($searchTerm) {
+                        $subQ->where('nama_device', 'like', $searchTerm);
+                    });
+            });
+        }
+
+        $devices = $devicesQuery->orderBy('sensor_data.id_device', 'asc')->get();
 
         /*
         |--------------------------------------------------------------------------
