@@ -43,13 +43,13 @@
         <div
             class="flex items-center space-x-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-100">
             <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-            <span>Posisi Stabil (0 - 19m)</span>
+            <span>Posisi Stabil (0 - 29m)</span>
         </div>
 
         <div
             class="flex items-center space-x-2 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full border border-amber-200">
             <span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
-            <span>Kemungkinan Berpindah (20 - 99m)</span>
+            <span>Kemungkinan Berpindah (30 - 99m)</span>
         </div>
 
         <div
