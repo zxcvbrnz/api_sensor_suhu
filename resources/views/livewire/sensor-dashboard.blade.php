@@ -35,7 +35,7 @@
         <div
             class="flex items-center space-x-2 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full border border-amber-200 font-medium">
             <span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
-            <span>Pindah Ruangan (20 - 99m)</span>
+            <span>Pindah Posisi (20 - 99m)</span>
         </div>
         <div
             class="flex items-center space-x-2 bg-rose-50 text-rose-700 px-3 py-1.5 rounded-full border border-rose-200 font-bold">
