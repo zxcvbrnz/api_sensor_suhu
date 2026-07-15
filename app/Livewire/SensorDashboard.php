@@ -169,37 +169,24 @@ class SensorDashboard extends Component
     {
         $logs = SensorData::where('id_device', $deviceId)
             ->latest()
-            ->take(10)
+            ->take(20)
             ->get()
             ->reverse()
             ->values();
 
-        // Belum cukup data
-        if ($logs->count() < 10) {
+        if ($logs->count() < 20) {
             return 0;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Pisahkan 5 data lama dan 5 data baru
-        |--------------------------------------------------------------------------
-        */
-        $oldCluster = $logs->slice(0, 5)->values();
-        $newCluster = $logs->slice(5, 5)->values();
+        // 10 data lama dan 10 data terbaru
+        $oldCluster = $logs->slice(0, 10)->values();
+        $newCluster = $logs->slice(10, 10)->values();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Cari pusat masing-masing cluster
-        |--------------------------------------------------------------------------
-        */
+        // Hitung titik tengah masing-masing cluster
         $oldCenter = $this->calculateCenter($oldCluster);
         $newCenter = $this->calculateCenter($newCluster);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Hitung perpindahan pusat
-        |--------------------------------------------------------------------------
-        */
+        // Jarak perpindahan pusat cluster
         $centerMovement = $this->calculateHaversineDistance(
             $oldCenter['lat'],
             $oldCenter['lng'],
@@ -207,15 +194,11 @@ class SensorDashboard extends Component
             $newCenter['lng']
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Hitung radius cluster baru
-        |--------------------------------------------------------------------------
-        */
-        $radius = [];
+        // Hitung penyebaran titik pada cluster terbaru
+        $spreads = [];
 
         foreach ($newCluster as $point) {
-            $radius[] = $this->calculateHaversineDistance(
+            $spreads[] = $this->calculateHaversineDistance(
                 $newCenter['lat'],
                 $newCenter['lng'],
                 $point->latitude,
@@ -223,43 +206,47 @@ class SensorDashboard extends Component
             );
         }
 
-        $medianRadius = $this->median($radius);
+        $medianSpread = $this->median($spreads);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Filter GPS Outlier
-        |--------------------------------------------------------------------------
-        */
-        $validRadius = [];
+        // Buang titik GPS yang terlalu jauh dari pola mayoritas
+        $validSpreads = [];
 
-        foreach ($radius as $r) {
-            if ($r <= ($medianRadius + 15)) {
-                $validRadius[] = $r;
+        foreach ($spreads as $spread) {
+            if ($spread <= ($medianSpread + 20)) {
+                $validSpreads[] = $spread;
             }
         }
 
-        if (count($validRadius) < 3) {
+        // Data terlalu sedikit untuk keputusan
+        if (count($validSpreads) < 5) {
             return 0;
         }
 
-        $maxRadius = max($validRadius);
+        $clusterSpread = max($validSpreads);
+
 
         /*
-        |--------------------------------------------------------------------------
-        | KEPUTUSAN
-        |--------------------------------------------------------------------------
-        */
-        // GPS drift
-        if ($centerMovement < 15 && $maxRadius > 25) {
+    |--------------------------------------------------------------------------
+    | Analisa Status
+    |--------------------------------------------------------------------------
+    */
+
+
+        // Kemungkinan GPS drift:
+        // pusat tidak berpindah tetapi ada titik menyebar
+        if ($centerMovement < 20 && $clusterSpread > 35) {
             return 0;
         }
 
-        // Diam
-        if ($centerMovement < 20 && $maxRadius < 20) {
+
+        // Posisi tetap:
+        // pusat stabil dan sebaran titik kecil
+        if ($centerMovement < 15 && $clusterSpread < 20) {
             return 0;
         }
 
-        // Bergerak
+
+        // Perpindahan valid
         return round($centerMovement, 1);
     }
 
