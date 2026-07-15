@@ -106,27 +106,28 @@
                                 {{-- KOLOM STATUS PERGERAKAN TERBARU --}}
                                 <td class="px-6 py-4">
                                     @if (isset($device->distance_moved))
-                                        @if ($device->distance_moved >= 15)
+                                        @if ($device->distance_moved >= 100)
                                             <span
                                                 class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200"
                                                 title="Pergeseran Signifikan">
                                                 <span class="h-2 w-2 rounded-full bg-rose-500 animate-pulse"></span>
                                                 <span>Pindah Posisi
-                                                    ({{ $device->distance_moved >= 1000 ? round($device->distance_moved / 1000, 2) . ' km' : round($device->distance_moved) . ' m' }})</span>
+                                                    ({{ $device->distance_moved >= 1000 ? round($device->distance_moved / 1000, 2) . ' km' : round($device->distance_moved) . ' m' }})
+                                                </span>
                                             </span>
-                                        @elseif ($device->distance_moved >= 2 && $device->distance_moved < 15)
+                                        @elseif ($device->distance_moved >= 20 && $device->distance_moved < 100)
                                             <span
                                                 class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200"
                                                 title="Pindah Ruangan/Bilik">
                                                 <span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
-                                                <span>Ganti Ruangan ({{ round($device->distance_moved, 1) }} m)</span>
+                                                <span>Pindah Ruangan ({{ round($device->distance_moved, 1) }} m)</span>
                                             </span>
                                         @else
                                             <span
                                                 class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100"
                                                 title="Tidak terjadi perpindahan">
                                                 <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                                                <span>Stasioner</span>
+                                                <span>Posisi Tetap</span>
                                             </span>
                                         @endif
                                     @else
@@ -213,28 +214,30 @@
                                         </span>
 
                                         @if (isset($log->distance_moved))
-                                            @if ($log->distance_moved >= 15)
+                                            @if ($log->distance_moved >= 100)
                                                 <span
                                                     class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200"
                                                     title="Pergeseran Signifikan">
                                                     <span class="h-2 w-2 rounded-full bg-rose-500 animate-pulse"></span>
                                                     <span>Pindah Posisi
-                                                        ({{ $log->distance_moved >= 1000 ? round($log->distance_moved / 1000, 2) . ' km' : round($log->distance_moved) . ' m' }})</span>
+                                                        ({{ $log->distance_moved >= 1000 ? round($log->distance_moved / 1000, 2) . ' km' : round($log->distance_moved) . ' m' }})
+                                                    </span>
                                                 </span>
-                                            @elseif ($log->distance_moved >= 2 && $log->distance_moved < 15)
+                                            @elseif ($log->distance_moved >= 20 && $log->distance_moved < 100)
                                                 <span
                                                     class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200"
                                                     title="Pindah Ruangan/Bilik">
                                                     <span
                                                         class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
-                                                    <span>Ganti Ruangan ({{ round($log->distance_moved, 1) }} m)</span>
+                                                    <span>Pindah Ruangan ({{ round($log->distance_moved, 1) }}
+                                                        m)</span>
                                                 </span>
                                             @else
                                                 <span
                                                     class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100"
                                                     title="Tidak terjadi perpindahan">
                                                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                                                    <span>Stasioner</span>
+                                                    <span>Posisi Tetap</span>
                                                 </span>
                                             @endif
                                         @endif
