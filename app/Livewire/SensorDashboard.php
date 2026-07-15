@@ -125,40 +125,11 @@ class SensorDashboard extends Component
             ->orderBy('sensor_data.id_device', 'asc')
             ->get();
 
-        // === RANGKUMAN STATUS PERGERAKAN DARI 10 DATA TERBARU UNTUK LIST UTAMA ===
         foreach ($devices as $deviceLatest) {
 
-            $recentLogs = SensorData::where('id_device', $deviceLatest->id_device)
-                ->latest()
-                ->take(10)
-                ->get();
-
-            if ($recentLogs->count() < 2) {
-                $deviceLatest->distance_moved = 0;
-                continue;
-            }
-
-            // Hitung titik pusat (centroid)
-            $avgLat = $recentLogs->avg('latitude');
-            $avgLng = $recentLogs->avg('longitude');
-
-            $maxDistance = 0;
-
-            foreach ($recentLogs as $log) {
-
-                $distance = $this->calculateHaversineDistance(
-                    $avgLat,
-                    $avgLng,
-                    $log->latitude,
-                    $log->longitude
-                );
-
-                if ($distance > $maxDistance) {
-                    $maxDistance = $distance;
-                }
-            }
-
-            $deviceLatest->distance_moved = $maxDistance;
+            $deviceLatest->distance_moved = $this->analyzeMovement(
+                $deviceLatest->id_device
+            );
         }
 
         $deviceLogs = collect();
@@ -200,5 +171,83 @@ class SensorDashboard extends Component
             'devices' => $devices,
             'deviceLogs' => $deviceLogs
         ]);
+    }
+
+    private function analyzeMovement($deviceId)
+    {
+        $logs = SensorData::where('id_device', $deviceId)
+            ->latest()
+            ->take(10)
+            ->get()
+            ->reverse()
+            ->values();
+
+        if ($logs->count() < 2) {
+            return 0;
+        }
+
+        $segments = [];
+
+        for ($i = 1; $i < $logs->count(); $i++) {
+
+            $distance = $this->calculateHaversineDistance(
+                $logs[$i - 1]->latitude,
+                $logs[$i - 1]->longitude,
+                $logs[$i]->latitude,
+                $logs[$i]->longitude
+            );
+
+            // abaikan noise kecil
+            if ($distance < 5) {
+                continue;
+            }
+
+            $segments[] = $distance;
+        }
+
+        if (count($segments) == 0) {
+            return 0;
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Median Filter
+    |--------------------------------------------------------------------------
+    */
+
+        sort($segments);
+
+        $median = $segments[(int) floor(count($segments) / 2)];
+
+        /*
+    |--------------------------------------------------------------------------
+    | Hitung berapa data yang mendekati median
+    |--------------------------------------------------------------------------
+    */
+
+        $valid = 0;
+        $sum = 0;
+
+        foreach ($segments as $distance) {
+
+            if (abs($distance - $median) <= 15) {
+
+                $valid++;
+
+                $sum += $distance;
+            }
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Kalau cuma 1-2 data berarti kemungkinan GPS drift
+    |--------------------------------------------------------------------------
+    */
+
+        if ($valid < 3) {
+            return 0;
+        }
+
+        return $sum / $valid;
     }
 }
