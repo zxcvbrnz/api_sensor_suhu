@@ -35,9 +35,9 @@
         <span class="font-semibold text-gray-700 w-full sm:w-auto">
             Status Pergerakan
             <br>
-            <span class="text-[10px] text-gray-400">
+            {{-- <span class="text-[10px] text-gray-400">
                 (Berdasarkan sebaran 10 titik GPS terakhir)
-            </span>
+            </span> --}}
         </span>
 
         <div
