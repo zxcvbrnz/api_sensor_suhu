@@ -6,9 +6,9 @@
             <h1 class="text-2xl font-bold text-gray-800">
                 Dashboard Monitoring
             </h1>
-            <p class="text-sm text-gray-500">
+            {{-- <p class="text-sm text-gray-500">
                 Analisis posisi berdasarkan 10 titik GPS terakhir
-            </p>
+            </p> --}}
         </div>
 
         <div class="flex items-center space-x-2">
