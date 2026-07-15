@@ -291,13 +291,12 @@
     {{-- =========================
          MODAL EDIT NAMA (DITAMBAHKAN)
          ========================= --}}
-    @if (isset($showEditNameModal) && $showEditNameModal)
+    @if ($showEditNameModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
             <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
                 <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
                     <h3 class="font-bold text-gray-800">Edit Nama Perangkat</h3>
-                    <button wire:click="$set('showEditNameModal', false)"
-                        class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
+                    <button wire:click="cancelEdit" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
                 </div>
                 <div class="p-6 space-y-4">
                     <div>
@@ -308,12 +307,14 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Nama Perangkat</label>
-                        <input type="text" wire:model.defer="newDeviceName"
+                        {{-- DI-FIX: Menyelaraskan model ke $inputNamaDevice --}}
+                        <input type="text" wire:model.defer="inputNamaDevice"
                             class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                 </div>
                 <div class="p-3 bg-gray-50 flex justify-end gap-2 border-t">
-                    <button wire:click="$set('showEditNameModal', false)"
+                    {{-- DI-FIX: Mengarahkan batal ke method cancelEdit --}}
+                    <button wire:click="cancelEdit"
                         class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded text-xs transition">Batal</button>
                     <button wire:click="saveDeviceName"
                         class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-xs font-semibold transition">Simpan</button>

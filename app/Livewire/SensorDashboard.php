@@ -21,6 +21,7 @@ class SensorDashboard extends Component
 
     // Inline edit device
     public $editingDeviceId = null;
+    public $showEditNameModal = false;
     public $inputNamaDevice = '';
 
     public function updatingViewingLogs()
@@ -65,6 +66,7 @@ class SensorDashboard extends Component
     {
         $this->editingDeviceId = $idDevice;
         $this->inputNamaDevice = $currentName ?? '';
+        $this->showEditNameModal = true; // Aktifkan modal saat tombol diklik
     }
 
     public function saveDeviceName()
@@ -80,6 +82,8 @@ class SensorDashboard extends Component
             ['nama_device' => $namaBaru]
         );
 
+        // Reset state dan tutup modal
+        $this->showEditNameModal = false;
         $this->editingDeviceId = null;
         $this->inputNamaDevice = '';
 
@@ -88,6 +92,7 @@ class SensorDashboard extends Component
 
     public function cancelEdit()
     {
+        $this->showEditNameModal = false;
         $this->editingDeviceId = null;
         $this->inputNamaDevice = '';
     }
