@@ -324,15 +324,34 @@ class SensorDashboard extends Component
             $items = $paginatedLogs->items();
 
             foreach ($items as $index => $currentLog) {
-                if (isset($items[$index + 1])) {
-                    $previousLog = $items[$index + 1];
-                } else {
+                $previousLog = null;
+
+                // 1. Cari previousLog dari collection $items terlebih dahulu (bukan 0,0)
+                $searchIndex = $index + 1;
+                while (isset($items[$searchIndex])) {
+                    $tempLog = $items[$searchIndex];
+                    // Jika koordinat valid (bukan 0,0), gunakan ini sebagai previousLog
+                    if ($tempLog->latitude != 0 || $tempLog->longitude != 0) {
+                        $previousLog = $tempLog;
+                        break;
+                    }
+                    $searchIndex++; // Naikkan index untuk mencari data di belakangnya lagi jika masih 0,0
+                }
+
+                // 2. Jika tidak ditemukan di collection $items, cari langsung ke Database (bukan 0,0)
+                if (!$previousLog) {
                     $previousLog = SensorData::where('id_device', $currentLog->id_device)
                         ->where('created_at', '<', $currentLog->created_at)
+                        // Tambahkan kondisi agar database mengabaikan koordinat 0,0
+                        ->where(function ($query) {
+                            $query->where('latitude', '!=', 0)
+                                ->orWhere('longitude', '!=', 0);
+                        })
                         ->orderBy('created_at', 'desc')
                         ->first();
                 }
 
+                // 3. Kalkulasi Jarak Haversine
                 if ($previousLog) {
                     $currentLog->distance_moved = $this->calculateHaversineDistance(
                         $currentLog->latitude,
