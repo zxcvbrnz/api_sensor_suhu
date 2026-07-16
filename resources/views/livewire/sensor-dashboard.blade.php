@@ -6,9 +6,6 @@
             <h1 class="text-2xl font-bold text-gray-800">
                 Dashboard Monitoring
             </h1>
-            {{-- <p class="text-sm text-gray-500">
-                Analisis posisi berdasarkan 10 titik GPS terakhir
-            </p> --}}
         </div>
 
         <div class="flex items-center space-x-2">
@@ -35,9 +32,6 @@
         <span class="font-semibold text-gray-700 w-full sm:w-auto">
             Status Pergerakan
             <br>
-            {{-- <span class="text-[10px] text-gray-400">
-                (Berdasarkan sebaran 10 titik GPS terakhir)
-            </span> --}}
         </span>
 
         <div
@@ -126,36 +120,51 @@
                                 </td>
 
                                 <td class="px-6 py-4">
-                                    <div class="font-mono text-xs text-gray-500">
-                                        Lat: {{ $device->latitude }} <br>
-                                        Lng: {{ $device->longitude }}
-                                    </div>
-                                    <button
-                                        wire:click="openMap({{ $device->latitude }}, {{ $device->longitude }}, '{{ $device->id_device }}')"
-                                        class="mt-2 px-2 py-1 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded text-xs hover:bg-emerald-100 transition">
-                                        🗺 Map
-                                    </button>
+                                    @if ($device->latitude == 0 && $device->longitude == 0)
+                                        <span
+                                            class="text-xs text-amber-600 font-medium bg-amber-50 px-2 py-1.5 rounded border border-amber-200 inline-block animate-pulse">
+                                            🛰️ Menunggu Sinyal GPS...
+                                        </span>
+                                    @else
+                                        <div class="font-mono text-xs text-gray-500">
+                                            Lat: {{ $device->latitude }} <br>
+                                            Lng: {{ $device->longitude }}
+                                        </div>
+                                        <button
+                                            wire:click="openMap({{ $device->latitude }}, {{ $device->longitude }}, '{{ $device->id_device }}')"
+                                            class="mt-2 px-2 py-1 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded text-xs hover:bg-emerald-100 transition">
+                                            🗺️ Map
+                                        </button>
+                                    @endif
                                 </td>
 
                                 <td class="px-6 py-4">
-                                    @if ($device->distance_moved >= 100)
-                                        <span title="Pergeseran pusat 10 titik GPS terakhir"
-                                            class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                                            <span class="h-2 w-2 bg-rose-500 rounded-full animate-pulse"></span>
-                                            Pindah Lokasi
-                                        </span>
-                                    @elseif($device->distance_moved >= 20)
-                                        <span title="Perubahan cluster posisi terdeteksi"
-                                            class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                            <span class="h-2 w-2 bg-amber-500 rounded-full animate-pulse"></span>
-                                            Kemungkinan Berpindah
+                                    @if ($device->latitude == 0 && $device->longitude == 0)
+                                        <span
+                                            class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-50 text-gray-400 border border-gray-200">
+                                            <span class="h-2 w-2 bg-gray-400 rounded-full animate-ping"></span>
+                                            GPS Sedang Loading
                                         </span>
                                     @else
-                                        <span title="10 titik terakhir masih berada pada area yang sama"
-                                            class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                            <span class="h-2 w-2 bg-emerald-500 rounded-full"></span>
-                                            Posisi Stabil
-                                        </span>
+                                        @if ($device->distance_moved >= 100)
+                                            <span title="Pergeseran pusat 10 titik GPS terakhir"
+                                                class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                                <span class="h-2 w-2 bg-rose-500 rounded-full animate-pulse"></span>
+                                                Pindah Lokasi
+                                            </span>
+                                        @elseif($device->distance_moved >= 20)
+                                            <span title="Perubahan cluster posisi terdeteksi"
+                                                class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                <span class="h-2 w-2 bg-amber-500 rounded-full animate-pulse"></span>
+                                                Kemungkinan Berpindah
+                                            </span>
+                                        @else
+                                            <span title="10 titik terakhir masih berada pada area yang sama"
+                                                class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                <span class="h-2 w-2 bg-emerald-500 rounded-full"></span>
+                                                Posisi Stabil
+                                            </span>
+                                        @endif
                                     @endif
                                 </td>
 
@@ -237,42 +246,53 @@
 
                                 <td class="px-6 py-4">
                                     <div class="space-y-2">
-                                        <div class="font-mono text-xs bg-gray-100 rounded px-2 py-1 inline-block">
-                                            {{ $log->latitude }}, {{ $log->longitude }}
-                                        </div>
-
-                                        @if (isset($log->distance_moved))
-                                            <div>
-                                                @if ($log->distance_moved >= 100)
-                                                    <span
-                                                        class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-100">
-                                                        <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                                                        Pindah Lokasi ({{ round($log->distance_moved) }}m)
-                                                    </span>
-                                                @elseif($log->distance_moved >= 20)
-                                                    <span
-                                                        class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">
-                                                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                                                        Pindah Posisi ({{ round($log->distance_moved) }}m)
-                                                    </span>
-                                                @else
-                                                    <span
-                                                        class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                                        Tetap
-                                                    </span>
-                                                @endif
+                                        @if ($log->latitude == 0 && $log->longitude == 0)
+                                            <span
+                                                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                                                🛰️ GPS Sedang Memuat Data...
+                                            </span>
+                                        @else
+                                            <div class="font-mono text-xs bg-gray-100 rounded px-2 py-1 inline-block">
+                                                {{ $log->latitude }}, {{ $log->longitude }}
                                             </div>
+
+                                            @if (isset($log->distance_moved))
+                                                <div>
+                                                    @if ($log->distance_moved >= 100)
+                                                        <span
+                                                            class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-100">
+                                                            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                                                            Pindah Lokasi ({{ round($log->distance_moved) }}m)
+                                                        </span>
+                                                    @elseif($log->distance_moved >= 20)
+                                                        <span
+                                                            class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">
+                                                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                                            Pindah Posisi ({{ round($log->distance_moved) }}m)
+                                                        </span>
+                                                    @else
+                                                        <span
+                                                            class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                                            Tetap
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            @endif
                                         @endif
                                     </div>
                                 </td>
 
                                 <td class="px-6 py-4 text-center">
-                                    <button
-                                        wire:click="openMap({{ $log->latitude }}, {{ $log->longitude }}, '{{ $log->id_device }}')"
-                                        class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs transition">
-                                        Lihat Titik
-                                    </button>
+                                    @if ($log->latitude == 0 && $log->longitude == 0)
+                                        <span class="text-xs text-gray-400 italic">Tidak ada maps</span>
+                                    @else
+                                        <button
+                                            wire:click="openMap({{ $log->latitude }}, {{ $log->longitude }}, '{{ $log->id_device }}')"
+                                            class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs transition">
+                                            Lihat Titik
+                                        </button>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
@@ -314,13 +334,11 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Nama Perangkat</label>
-                        {{-- DI-FIX: Menyelaraskan model ke $inputNamaDevice --}}
                         <input type="text" wire:model.defer="inputNamaDevice"
                             class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                 </div>
                 <div class="p-3 bg-gray-50 flex justify-end gap-2 border-t">
-                    {{-- DI-FIX: Mengarahkan batal ke method cancelEdit --}}
                     <button wire:click="cancelEdit"
                         class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded text-xs transition">Batal</button>
                     <button wire:click="saveDeviceName"
@@ -349,14 +367,12 @@
                 </div>
 
                 <div class="h-96">
-                    {{-- DI-FIX: Menggunakan URL Embed Google Maps yang Valid --}}
                     <iframe width="100%" height="100%" frameborder="0" style="border:0;" allowfullscreen
                         src="https://maps.google.com/maps?q={{ $mapLatitude }},{{ $mapLongitude }}&hl=id&z=17&output=embed">
                     </iframe>
                 </div>
 
                 <div class="p-3 bg-gray-50 flex justify-end gap-2">
-                    {{-- DI-FIX: Menggunakan URL Google Maps eksternal yang Valid --}}
                     <a target="_blank" href="https://www.google.com/maps?q={{ $mapLatitude }},{{ $mapLongitude }}"
                         class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold inline-flex items-center gap-1 transition">
                         Buka Google Maps
